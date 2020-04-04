@@ -3,7 +3,7 @@
 
 # Fichier des fonctions
 
-fit.matrices = function(dat,wi,X,count.names,agecut,ipremy,theta0)
+fit.matrices = function(dat,wi,X,count.names,agecut,ipremy,iderny,theta0)
 #' @description Fitting contact matrices for multiple locations under the constraint that the matrix of the total of the contacts is symmetrical.
 #' @param dat Matrix containing the contacts counts for all age slices and all locations, in wide format
 #' @param wi Vector of individual weights
@@ -11,6 +11,7 @@ fit.matrices = function(dat,wi,X,count.names,agecut,ipremy,theta0)
 #' @param count.names Vector of names of the columns of dat containing the contacts counts
 #' @param agecut Vector of breakpoints of the age slices for the participants (should match the age slices for the contacts)
 #' @param ipremy Matrix of the first age slice for each combination of location and type of household
+#' @param iderny Matrix of the last age slice for each combination of location and type of household
 #' @param theta0 Vector of initial parameter values (log counts and dispersion parameters) to be passed to the optimizer
 {
 	nn = length(agecut)-1
@@ -27,9 +28,9 @@ fit.matrices = function(dat,wi,X,count.names,agecut,ipremy,theta0)
 		# Boucle sur le statut avec017 (non/oui)
 		for (j in 1:(ncol(tab)/nn))
 		{
-		vec = as.vector(tab[(k-1)*nn+1:nn,(j-1)*nn+ipremy[j,k]:nn])
+		vec = as.vector(tab[(k-1)*nn+1:nn,(j-1)*nn+ipremy[j,k]:iderny[j,k]])
 		y = c(y,vec)
-		w = c(w,rep(wj[j,ipremy[j,k]:nn],rep(nn,nn-ipremy[j,k]+1)))				
+		w = c(w,rep(wj[j,ipremy[j,k]:iderny[j,k]],rep(nn,iderny[j,k]-ipremy[j,k]+1)))				
 		}
 	}
 	
@@ -114,8 +115,15 @@ for(k in 1:(nn-1))
 	for(h in 1:nrow(imat[[k]]))
 	{
 		# Si on a atteint la 1re tranche d'âge pour la matrice
-		mc = matrix(exp(b[outer((k+1):nn, iniv[imat[[k]][h,]] + (k-iprem[imat[[k]][h,]])*nn,"+")]),nn-k,sum(imat[[k]][h,]))
-		ml = matrix(exp(b[matrix(iniv[imat[[k]][h,]],nn-k,sum(imat[[k]][h,]),byrow=T) + outer(k:(nn-1),iprem[imat[[k]][h,]],"-")*nn + k]),nn-k,sum(imat[[k]][h,]))
+		m1 = outer((k+1):nn, iniv[imat[[k]][h,]] + (k-iprem[imat[[k]][h,]])*idern[imat[[k]][h,]],"+")
+		m2 = matrix(iniv[imat[[k]][h,]],nn-k,sum(imat[[k]][h,]),byrow=T) + k
+		mc = ml = matrix(0,nn-k,sum(imat[[k]][h,]))
+		for (l in 1:ncol(mc))
+			if (idern[imat[[k]][h,]][l]>k)
+			{
+				mc[1:(idern[imat[[k]][h,]][l]-k),l] = exp(b[m1[1:(idern[imat[[k]][h,]][l]-k),l]])		
+				ml[1:(idern[imat[[k]][h,]][l]-k),l] = exp(b[m2[1:(idern[imat[[k]][h,]][l]-k),l]+ (k:(idern[imat[[k]][h,]][l]-1)-iprem[imat[[k]][h,]])*nn])
+			}
 		tmp = tmp + wj[h,k]*apply(mc,1,sum) - wj[h,(k+1):nn]*apply(ml,1,sum)
 	}
 	contr.vec = c(contr.vec,tmp)
