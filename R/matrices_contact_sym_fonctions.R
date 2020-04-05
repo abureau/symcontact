@@ -106,7 +106,7 @@ contrc.fonc = function(theta)
 {
 b = theta[-length(theta)]
 contr.vec = numeric(0)
-# Boucle sur les tranches d'âge
+# Boucle sur les tranches d'âge des participants
 for(k in 1:(nn-1))
 {
 	# Indice initial pour ce groupe d'âge dans le vecteur de coefficients
@@ -114,15 +114,17 @@ for(k in 1:(nn-1))
 	# Boucle sur les combinaisons possibles de matrices pour un groupe d'âge
 	for(h in 1:nrow(imat[[k]]))
 	{
-		# Si on a atteint la 1re tranche d'âge pour la matrice
-		m1 = outer((k+1):nn, iniv[imat[[k]][h,]] + (k-iprem[imat[[k]][h,]])*idern[imat[[k]][h,]],"+")
-		m2 = matrix(iniv[imat[[k]][h,]],nn-k,sum(imat[[k]][h,]),byrow=T) + k
-		mc = ml = matrix(0,nn-k,sum(imat[[k]][h,]))
-		for (l in 1:ncol(mc))
+		# Pour la matrice mc des colonnes dans les contraintes, on fait le calcul complet
+		mc = matrix(exp(b[outer((k+1):nn, iniv[imat[[k]][h,]] + (k-iprem[imat[[k]][h,]])*nn,"+")]),nn-k,sum(imat[[k]][h,]))
+		# Matrice des indices de la ligne des contacts de la tranche d'âge k pour les participants de la 1re tranche d'âge des participants
+		mil = matrix(iniv[imat[[k]][h,]],nn-k,sum(imat[[k]][h,]),byrow=T) + k
+		ml = matrix(0,nn-k,sum(imat[[k]][h,]))
+		for (l in 1:ncol(ml))
+			# Pour la matrice ml des lignes dans les contraintes, la tranche d'âge k contribue seulement si les participants de cette tranche sont inclus dans la matrice impliquée		
 			if (idern[imat[[k]][h,]][l]>k)
 			{
-				mc[1:(idern[imat[[k]][h,]][l]-k),l] = exp(b[m1[1:(idern[imat[[k]][h,]][l]-k),l]])		
-				ml[1:(idern[imat[[k]][h,]][l]-k),l] = exp(b[m2[1:(idern[imat[[k]][h,]][l]-k),l]+ (k:(idern[imat[[k]][h,]][l]-1)-iprem[imat[[k]][h,]])*nn])
+				# On ajoute à l'indice de base dans mil le décalage pour la tranche d'âge k des participants
+				ml[1:(idern[imat[[k]][h,]][l]-k),l] = exp(b[mil[1:(idern[imat[[k]][h,]][l]-k),l] + ((k:(idern[imat[[k]][h,]][l]-1))-iprem[imat[[k]][h,]][l])*nn ])
 			}
 		tmp = tmp + wj[h,k]*apply(mc,1,sum) - wj[h,(k+1):nn]*apply(ml,1,sum)
 	}
