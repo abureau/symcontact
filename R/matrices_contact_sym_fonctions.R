@@ -114,6 +114,7 @@ for(k in 1:(nn-1))
 	# Boucle sur les combinaisons possibles de matrices pour un groupe d'âge
 	for(h in 1:nrow(imat[[k]]))
 	{
+		# imat[[k]][h,] s'assure qu'on a atteint la 1re tranche d'âge pour la matrice
 		# Pour la matrice mc des colonnes dans les contraintes, on fait le calcul complet
 		mc = matrix(exp(b[outer((k+1):nn, iniv[imat[[k]][h,]] + (k-iprem[imat[[k]][h,]])*nn,"+")]),nn-k,sum(imat[[k]][h,]))
 		# Matrice des indices de la ligne des contacts de la tranche d'âge k pour les participants de la 1re tranche d'âge des participants
@@ -121,7 +122,7 @@ for(k in 1:(nn-1))
 		ml = matrix(0,nn-k,sum(imat[[k]][h,]))
 		for (l in 1:ncol(ml))
 			# Pour la matrice ml des lignes dans les contraintes, la tranche d'âge k contribue seulement si les participants de cette tranche sont inclus dans la matrice impliquée		
-			if (idern[imat[[k]][h,]][l]>k)
+			if (k<idern[imat[[k]][h,]][l])
 			{
 				# On ajoute à l'indice de base dans mil le décalage pour la tranche d'âge k des participants
 				ml[1:(idern[imat[[k]][h,]][l]-k),l] = exp(b[mil[1:(idern[imat[[k]][h,]][l]-k),l] + ((k:(idern[imat[[k]][h,]][l]-1))-iprem[imat[[k]][h,]][l])*nn ])
