@@ -150,7 +150,7 @@ contact.square.mat = function(b,X,nn)
 	return(m)
 }
 
-contact.mat = function(b,X,iniv,iprem)
+contact.mat = function(b,X,iniv,iprem,idern)
 #' @description Reconstruction of contact matrices from coefficients
 #' @param b Vector of regression coefficients
 #' @param X Design matrix (optional)
@@ -162,6 +162,6 @@ contact.mat = function(b,X,iniv,iprem)
 	inivl = c(iniv,length(mu))
 	m = list()
 	for (g in 1:length(iniv))
-	m[[g]] = matrix(c(rep(0,(iprem[g]-1)*nn),mu[(inivl[g]+1):inivl[g+1]]),nn,nn)
+	m[[g]] = matrix(c(rep(0,(iprem[g]-1)*nn),mu[(inivl[g]+1):inivl[g+1]],rep(0,(nn-idern[g])*nn)),nn,nn)
 	return(m)
 }
