@@ -1,0 +1,35 @@
+# Création des objets décrivant la structure des données 
+
+# Matrices à 10 tranches d'âge
+#nn=10
+iprem = c(4,1,3,1,1,1)
+idern = c(10,9,10,9,9,10)
+# Matrices à 8 tranches d'âge
+nn=8
+idern.8cat = idern - 2
+#iniv = cumsum(c(0,7,nn,8,rep(nn,2))*nn)
+iniv.8cat = cumsum(c(0,(idern.8cat-iprem+1)[-length(iprem)])*nn)
+#np = sum(c(7,nn,8,rep(nn,3))*nn)
+#np = sum((idern-iprem+1)*nn)
+np.8cat = sum((idern.8cat-iprem+1)*nn)
+
+# Pour enfant.struct et ado.struct, la 1re ligne est arbitraire car les effectifs sont 0
+enfant.struct = matrix(rep(c(F,T,F,rep(T,3)),2),2,6,byrow=T)
+ado.struct = matrix(rep(c(F,T,rep(T,4)),2),2,6,byrow=T)
+adulte.struct = matrix(c(T,F,F,T,rep(T,8)),2,6)
+retraite.struct = matrix(c(T,F,T,F,F,T),1,6)
+concensus.struct = adulte.struct
+# Note: le dernier élément de imat ne sert pas. Les contraintes sur les matrices applicables au dernier groupe
+# doivent être imposées dans idern
+
+# Matrices à 10 tranches d'âge
+# Sans limite supérieure
+#imat = list(enfant.struct,enfant.struct,ado.struct,adulte.struct,adulte.struct,adulte.struct,adulte.struct,adulte.struct,adulte.struct,adulte.struct,concensus.struct)
+# Avec limite supérieure pour éliminer tranches d'âges avancées sans effectifs
+# imat = list(enfant.struct,enfant.struct,ado.struct,adulte.struct,adulte.struct,adulte.struct,adulte.struct,adulte.struct,adulte.struct,retraite.struct,concensus.struct)
+
+# Matrices à 8 tranches d'âge
+# Avec limite supérieure pour éliminer tranches d'âges avancées sans effectifs
+imat.8cat = list(enfant.struct,enfant.struct,ado.struct,adulte.struct,adulte.struct,adulte.struct,adulte.struct,retraite.struct,concensus.struct)
+
+
