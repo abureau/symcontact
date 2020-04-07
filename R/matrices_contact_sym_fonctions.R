@@ -39,6 +39,7 @@ fit.matrices = function(dat,wi,X,count.names,agecut,iprem,idern,ipremy,iderny,im
 	}
 	
 	# Assignation des objets requis par nlognb et contrc.fonc dans l'environnement parent
+	assign("nn",nn,env = parent.frame())
 	assign("y",y,env = parent.frame())
 	assign("X",X,env = parent.frame())
 	assign("w",w,env = parent.frame())
