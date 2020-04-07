@@ -118,14 +118,16 @@ for(k in 1:(nn-1))
 		# Pour la matrice mc des colonnes dans les contraintes, on fait le calcul complet
 		mc = matrix(exp(b[outer((k+1):nn, iniv[imat[[k]][h,]] + (k-iprem[imat[[k]][h,]])*nn,"+")]),nn-k,sum(imat[[k]][h,]))
 		# Matrice des indices de la ligne des contacts de la tranche d'âge k pour les participants de la 1re tranche d'âge des participants
-		mil = matrix(iniv[imat[[k]][h,]],nn-k,sum(imat[[k]][h,]),byrow=T) + k
-		ml = matrix(0,nn-k,sum(imat[[k]][h,]))
+		mil = matrix(iniv[imat[[nn+1]][h,]],nn-k,sum(imat[[nn+1]][h,]),byrow=T) + k
+#		ml = matrix(0,nn-k,sum(imat[[k]][h,]))
+# On utilise la dernière entrée de imat donnant toutes les matrices qui peuvent être impliquées
+		ml = matrix(0,nn-k,sum(imat[[nn+1]][h,]))
 		for (l in 1:ncol(ml))
 			# Pour la matrice ml des lignes dans les contraintes, la tranche d'âge k contribue seulement si les participants de cette tranche sont inclus dans la matrice impliquée		
-			if (k<idern[imat[[k]][h,]][l])
+			if (k<idern[imat[[nn+1]][h,]][l])
 			{
 				# On ajoute à l'indice de base dans mil le décalage pour la tranche d'âge k des participants
-				ml[1:(idern[imat[[k]][h,]][l]-k),l] = exp(b[mil[1:(idern[imat[[k]][h,]][l]-k),l] + ((k:(idern[imat[[k]][h,]][l]-1))-iprem[imat[[k]][h,]][l])*nn ])
+				ml[max(1,iprem[imat[[nn+1]][h,]][l]-k)+0:(idern[imat[[nn+1]][h,]][l]-max(k+1,iprem[imat[[nn+1]][h,]][l])),l] = exp(b[mil[1:(idern[imat[[nn+1]][h,]][l]-max(k,iprem[imat[[nn+1]][h,]][l]-1)),l] + ((max(k+1,iprem[imat[[nn+1]][h,]][l]):idern[imat[[nn+1]][h,]][l])-iprem[imat[[nn+1]][h,]][l])*nn ])
 			}
 		tmp = tmp + wj[h,k]*apply(mc,1,sum) - wj[h,(k+1):nn]*apply(ml,1,sum)
 	}
