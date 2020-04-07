@@ -3,16 +3,20 @@
 
 # Fichier des fonctions
 
-fit.matrices = function(dat,wi,X,count.names,agecut,ipremy,iderny,theta0)
+fit.matrices = function(dat,wi,X,count.names,agecut,iprem,idern,ipremy,iderny,imat,theta0,iniv)
 #' @description Fitting contact matrices for multiple locations under the constraint that the matrix of the total of the contacts is symmetrical.
 #' @param dat Matrix containing the contacts counts for all age slices and all locations, in wide format
 #' @param wi Vector of individual weights
 #' @param X Design matrix for the cross-tabulated data
 #' @param count.names Vector of names of the columns of dat containing the contacts counts
 #' @param agecut Vector of breakpoints of the age slices for the participants (should match the age slices for the contacts)
+#' @param iprem Vector of the first age slice for each contact matrix
+#' @param idern Vector of the last age slice for each contact matrix
 #' @param ipremy Matrix of the first age slice for each combination of location and type of household
 #' @param iderny Matrix of the last age slice for each combination of location and type of household
+#' @param imat List of boolean matrices where each row indicates the contact matrices applicable to a different subset of subjects
 #' @param theta0 Vector of initial parameter values (log counts and dispersion parameters) to be passed to the optimizer
+#' @param iniv Vector of the index preceeding the first parameter of each contact matrix in the vector theta0
 {
 	nn = length(agecut)-1
 	
@@ -34,6 +38,15 @@ fit.matrices = function(dat,wi,X,count.names,agecut,ipremy,iderny,theta0)
 		}
 	}
 	
+	# Assignation des objets requis par nlognb et contrc.fonc dans l'environnement parent
+	assign("y",y,env = parent.frame())
+	assign("X",X,env = parent.frame())
+	assign("w",w,env = parent.frame())
+	assign("wj",wj,env = parent.frame())
+	assign("iniv",iniv,env = parent.frame())
+	assign("iprem",iprem,env = parent.frame())	
+	assign("idern",iprem,env = parent.frame())	
+	assign("imat",imat,env = parent.frame())
 	# Estimation des matrices
 	obj = ROI:::nlminb2(start=theta0,objective=nlognb,eqFun=contrc.fonc)
 	return(obj$par)
