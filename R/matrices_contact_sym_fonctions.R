@@ -173,10 +173,13 @@ contact.square.mat = function(b,X,nn)
 	return(m)
 }
 
-contact.mat = function(b,X,iniv,iprem,idern)
+contact.mat = function(b,X,iniv,iprem,idern,nn)
 #' @description Reconstruction of contact matrices from coefficients
 #' @param b Vector of regression coefficients
 #' @param X Design matrix (optional)
+#' @param iniv Vector of the index preceeding the first parameter of each contact matrix in the vector theta0
+#' @param iprem Vector of the first age slice for each contact matrix
+#' @param idern Vector of the last age slice for each contact matrix
 #' @param nn Dimension of the contact matrix
 #' @return List of length(mu)/nn^2 contact matrices
 {
