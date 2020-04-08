@@ -29,12 +29,12 @@ fit.matrices = function(dat,wi,X,count.names,agecut,iprem,idern,ipremy,iderny,im
 	{
 		tmp = tapply(wi,list(dat[,var.occup],dat[,var.kid],cut(dat$age,breaks=agecut)),sum,na.rm=T)
 		wj = apply(tmp,3,function(mat) stack(data.frame(mat))$values)
-		wj[is.na(wj)] = 0
 		# Poids pour la matrice du travail
 		wtt = rbind(apply(wj[c(3,4),],2,sum),apply(wj[c(7,8),],2,sum))
 		# Poids pour la matrice de l'école
 		wte = rbind(apply(wj[c(2,4),],2,sum),apply(wj[c(6,8),],2,sum))		
 	}
+	wj[is.na(wj)] = 0
 
 	# Création du vecteur de comptes y, du vecteur de poids w et du vecteur d'indices de début de chaque matrice iniv
 	y = w = NULL
