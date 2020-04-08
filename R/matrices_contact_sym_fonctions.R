@@ -54,7 +54,7 @@ fit.matrices = function(dat,wi,X,count.names,agecut,iprem,idern,ipremy,iderny,im
 	assign("wj",wj,env = parent.frame())
 	assign("iniv",iniv,env = parent.frame())
 	assign("iprem",iprem,env = parent.frame())	
-	assign("idern",iprem,env = parent.frame())	
+	assign("idern",idern,env = parent.frame())	
 	assign("imat",imat,env = parent.frame())
 	# Estimation des matrices
 	obj = ROI:::nlminb2(start=theta0,objective=nlognb,eqFun=contrc.fonc)
