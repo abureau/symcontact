@@ -24,12 +24,16 @@ fit.matrices = function(dat,wi,X,count.names,agecut,iprem,idern,ipremy,iderny,im
 	tab = t(apply(dat[,count.names],2,function(vec) tapply(vec,list(cut(dat$age,breaks=agecut),dat[,var.kid]),sum,na.rm=T)))
 	wt = tapply(wi,list(dat[,var.kid],cut(dat$age,breaks=agecut)),sum,na.rm=T)
 	if (missing(var.occup))
-		wj = wt
+		wj = wtt = wte = wt
 	else
 	{
 		tmp = tapply(wi,list(dat[,var.occup],dat[,var.kid],cut(dat$age,breaks=agecut)),sum,na.rm=T)
 		wj = apply(tmp,3,function(mat) stack(data.frame(mat))$values)
-		wj[is.na(wj)] = 0		
+		wj[is.na(wj)] = 0
+		# Poids pour la matrice du travail
+		wtt = rbind(apply(wj[c(3,4),],2,sum),apply(wj[c(7,8),],2,sum))
+		# Poids pour la matrice de l'école
+		wte = rbind(apply(wj[c(2,4),],2,sum),apply(wj[c(6,8),],2,sum))		
 	}
 
 	# Création du vecteur de comptes y, du vecteur de poids w et du vecteur d'indices de début de chaque matrice iniv
@@ -42,7 +46,17 @@ fit.matrices = function(dat,wi,X,count.names,agecut,iprem,idern,ipremy,iderny,im
 		{
 		vec = as.vector(tab[(k-1)*nn+1:nn,(j-1)*nn+ipremy[j,k]:iderny[j,k]])
 		y = c(y,vec)
-		w = c(w,rep(wt[j,ipremy[j,k]:iderny[j,k]],rep(nn,iderny[j,k]-ipremy[j,k]+1)))				
+		# Si c'est la matrice du travail
+		if (k == 2)
+			w = c(w,rep(wtt[j,ipremy[j,k]:iderny[j,k]],rep(nn,iderny[j,k]-ipremy[j,k]+1)))				
+		else
+		{
+			# Si c'est la matrice de l'école
+			if (k == 3)
+				w = c(w,rep(wte[j,ipremy[j,k]:iderny[j,k]],rep(nn,iderny[j,k]-ipremy[j,k]+1)))	
+			else			
+				w = c(w,rep(wt[j,ipremy[j,k]:iderny[j,k]],rep(nn,iderny[j,k]-ipremy[j,k]+1)))			
+		}
 		}
 	}
 	
