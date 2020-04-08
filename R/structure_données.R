@@ -13,12 +13,32 @@ iniv.8cat = cumsum(c(0,(idern.8cat-iprem+1)[-length(iprem)])*nn)
 #np = sum((idern-iprem+1)*nn)
 np.8cat = sum((idern.8cat-iprem+1)*nn)
 
+# Structures en supposant que tous les ado et adultes peuvent étudier et travailler
 # Pour enfant.struct et ado.struct, la 1re ligne est arbitraire car les effectifs sont 0
 enfant.struct = matrix(rep(c(F,T,F,rep(T,3)),2),2,6,byrow=T)
-ado.struct = matrix(rep(c(F,T,rep(T,4)),2),2,6,byrow=T)
+ado.struct = matrix(rep(c(F,rep(T,5)),2),2,6,byrow=T)
 adulte.struct = matrix(c(T,F,F,T,rep(T,8)),2,6)
 retraite.struct = matrix(c(T,F,T,F,F,T),1,6)
 concensus.struct = adulte.struct
+
+# Structures stratifiant pour les étudiants et les travailleurs
+# Ici on suppose que tous les enfants et ados vont à l'école
+enfant.strat.struct = matrix(F,8,6)
+enfant.strat.struct[6,] = c(F,T,F,rep(T,3))
+ado.strat.struct = matrix(F,8,6)
+ado.strat.struct[6,] = c(F,T,F,rep(T,3))
+ado.strat.struct[8,] = c(F,rep(T,5))
+adulte.strat.struct = matrix(F,8,6)
+adulte.strat.struct[1,] = c(T,F,F,F,T,T)
+adulte.strat.struct[2,] = c(T,F,F,T,T,T)
+adulte.strat.struct[3,] = c(T,F,T,F,T,T)
+adulte.strat.struct[4,] = c(T,F,T,T,T,T)
+adulte.strat.struct[5,] = c(F,T,F,F,T,T)
+adulte.strat.struct[6,] = c(F,T,F,T,T,T)
+adulte.strat.struct[7,] = c(F,T,T,F,T,T)
+adulte.strat.struct[8,] = c(F,T,T,T,T,T)
+concensus.strat.struct = adulte.strat.struct
+
 # Note: le dernier élément de imat ne sert pas. Les contraintes sur les matrices applicables au dernier groupe
 # doivent être imposées dans idern
 
@@ -32,4 +52,5 @@ concensus.struct = adulte.struct
 # Avec limite supérieure pour éliminer tranches d'âges avancées sans effectifs
 imat.8cat = list(enfant.struct,enfant.struct,ado.struct,adulte.struct,adulte.struct,adulte.struct,adulte.struct,retraite.struct,concensus.struct)
 
+imat.strat.8cat = list(enfant.strat.struct,enfant.strat.struct,ado.strat.struct,adulte.strat.struct,adulte.strat.struct,adulte.strat.struct,adulte.strat.struct,retraite.struct,concensus.strat.struct)
 

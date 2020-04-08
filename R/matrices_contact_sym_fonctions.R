@@ -3,7 +3,7 @@
 
 # Fichier des fonctions
 
-fit.matrices = function(dat,wi,X,count.names,agecut,iprem,idern,ipremy,iderny,imat,theta0,iniv)
+fit.matrices = function(dat,wi,X,count.names,agecut,iprem,idern,ipremy,iderny,imat,theta0,iniv,var.kid,var.occup)
 #' @description Fitting contact matrices for multiple locations under the constraint that the matrix of the total of the contacts is symmetrical.
 #' @param dat Matrix containing the contacts counts for all age slices and all locations, in wide format
 #' @param wi Vector of individual weights
@@ -20,9 +20,16 @@ fit.matrices = function(dat,wi,X,count.names,agecut,iprem,idern,ipremy,iderny,im
 {
 	nn = length(agecut)-1
 	
-	tab = t(apply(dat[,count.names],2,function(vec) tapply(vec,list(cut(dat$age,breaks=agecut),dat$menage_avec017),sum,na.rm=T)))
-	wj = t(tapply(wi,list(cut(dat$age,breaks=agecut),dat$menage_avec017),sum,na.rm=T))
-	wj[is.na(wj)] = 0
+	tab = t(apply(dat[,count.names],2,function(vec) tapply(vec,list(cut(dat$age,breaks=agecut),dat[,var.kid]),sum,na.rm=T)))
+	wt = tapply(wi,list(dat[,var.kid],cut(dat$age,breaks=agecut)),sum,na.rm=T)
+	if (missing(var.occup))
+		wj = wt
+	else
+	{
+		tmp = tapply(wi,list(dat[,var.occup],dat[,var.kid],cut(dat$age,breaks=agecut)),sum,na.rm=T)
+		wj = apply(tmp,3,function(mat) stack(data.frame(mat))$values)
+		wj[is.na(wj)] = 0		
+	}
 
 	# Création du vecteur de comptes y, du vecteur de poids w et du vecteur d'indices de début de chaque matrice iniv
 	y = w = NULL
@@ -34,7 +41,7 @@ fit.matrices = function(dat,wi,X,count.names,agecut,iprem,idern,ipremy,iderny,im
 		{
 		vec = as.vector(tab[(k-1)*nn+1:nn,(j-1)*nn+ipremy[j,k]:iderny[j,k]])
 		y = c(y,vec)
-		w = c(w,rep(wj[j,ipremy[j,k]:iderny[j,k]],rep(nn,iderny[j,k]-ipremy[j,k]+1)))				
+		w = c(w,rep(wt[j,ipremy[j,k]:iderny[j,k]],rep(nn,iderny[j,k]-ipremy[j,k]+1)))				
 		}
 	}
 	
