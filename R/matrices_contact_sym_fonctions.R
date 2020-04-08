@@ -3,7 +3,7 @@
 
 # Fichier des fonctions
 
-fit.matrices = function(dat,wi,X,count.names,agecut,iprem,idern,ipremy,iderny,imat,theta0,iniv,var.kid,var.occup)
+fit.matrices = function(dat,wi,X,count.names,agecut,iprem,idern,ipremy,iderny,imat,theta0,iniv,var.kid,var.occup,boot=F)
 #' @description Fitting contact matrices for multiple locations under the constraint that the matrix of the total of the contacts is symmetrical.
 #' @param dat Matrix containing the contacts counts for all age slices and all locations, in wide format
 #' @param wi Vector of individual weights
@@ -15,8 +15,9 @@ fit.matrices = function(dat,wi,X,count.names,agecut,iprem,idern,ipremy,iderny,im
 #' @param ipremy Matrix of the first age slice for each combination of location and type of household
 #' @param iderny Matrix of the last age slice for each combination of location and type of household
 #' @param imat List of boolean matrices where each row indicates the contact matrices applicable to a different subset of subjects
-#' @param theta0 Vector of initial parameter values (log counts and dispersion parameters) to be passed to the optimizer
+#' @param theta0 Vector of initial parameter values (log counts and dispersion parameters) to be passed to nlminb2
 #' @param iniv Vector of the index preceeding the first parameter of each contact matrix in the vector theta0
+#' @param boot Boolean indicating whether to return only a vector of statistics. The default is FALSE, which implies the object produced by nlminb2 will be returned
 {
 	nn = length(agecut)-1
 	
@@ -57,7 +58,12 @@ fit.matrices = function(dat,wi,X,count.names,agecut,iprem,idern,ipremy,iderny,im
 	assign("imat",imat,env = parent.frame())
 	# Estimation des matrices
 	obj = ROI:::nlminb2(start=theta0,objective=nlognb,eqFun=contrc.fonc)
-	return(obj$par)
+	if (boot) return(obj$par)
+	else
+	{
+		obj$wj = wj
+		return(obj)
+	}
 }
 
 nlognb = function(theta)
