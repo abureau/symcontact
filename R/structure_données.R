@@ -2,15 +2,15 @@
 
 # Matrices à 10 tranches d'âge
 #nn=10
+#iniv.10cat = cumsum(c(0,7,nn,8,rep(nn,2))*nn)
 iprem = c(4,1,3,1,1,1)
-idern = c(10,9,10,9,9,10)
+idern.10cat = c(10,9,10,9,9,10)
+#np.10cat = sum(c(7,nn,8,rep(nn,3))*nn)
+#np.10cat = sum((idern.10cat-iprem+1)*nn)
 # Matrices à 8 tranches d'âge
 nn=8
-idern.8cat = idern - 2
-#iniv = cumsum(c(0,7,nn,8,rep(nn,2))*nn)
+idern.8cat = idern.10cat - 2
 iniv.8cat = cumsum(c(0,(idern.8cat-iprem+1)[-length(iprem)])*nn)
-#np = sum(c(7,nn,8,rep(nn,3))*nn)
-#np = sum((idern-iprem+1)*nn)
 np.8cat = sum((idern.8cat-iprem+1)*nn)
 
 # Structures en supposant que tous les ado et adultes peuvent étudier et travailler
