@@ -4,7 +4,12 @@
 #nn=10
 #iniv.10cat = cumsum(c(0,7,nn,8,rep(nn,2))*nn)
 iprem = c(4,1,3,1,1,1)
+<<<<<<< Updated upstream
 idern.10cat = c(10,9,10,9,9,10)
+=======
+#idern.10cat = c(10,9,10,9,9,10)
+idern.10cat = c(10,9,10,8,9,10)
+>>>>>>> Stashed changes
 #np.10cat = sum(c(7,nn,8,rep(nn,3))*nn)
 #np.10cat = sum((idern.10cat-iprem+1)*nn)
 # Matrices à 8 tranches d'âge
