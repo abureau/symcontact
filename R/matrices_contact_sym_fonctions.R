@@ -7,7 +7,7 @@ fit.matrices = function(dat,wi,X,count.names,agecut,iprem,idern,ipremy,iderny,im
 #' @description Fitting contact matrices for multiple locations under the constraint that the matrix of the total of the contacts is symmetrical.
 #' @param dat Matrix containing the contacts counts for all age slices and all locations, in wide format
 #' @param wi Vector of individual weights
-#' @param X Design matrix for the cross-tabulated data
+#' @param X Design matrix for the cross-tabulated data (optionnal)
 #' @param count.names Vector of names of the columns of dat containing the contacts counts
 #' @param agecut Vector of breakpoints of the age slices for the participants (should match the age slices for the contacts)
 #' @param iprem Vector of the first age slice for each contact matrix
@@ -19,6 +19,14 @@ fit.matrices = function(dat,wi,X,count.names,agecut,iprem,idern,ipremy,iderny,im
 #' @param iniv Vector of the index preceeding the first parameter of each contact matrix in the vector theta0
 #' @param boot Boolean indicating whether to return only a vector of statistics. The default is FALSE, which implies the object produced by nlminb2 will be returned
 {
+	if (missing(X)) objective = nlognb.counts
+	else
+	{
+		if (nrow(X) != length(theta0)) stop ("Number of rows of X ",nrow(X)," does not equal the length of theta0",length(theta0))
+		assign("X",X,env = parent.frame())
+		objective = nlognb
+	}
+
 	nn = length(agecut)-1
 	
 	tab = t(apply(dat[,count.names],2,function(vec) tapply(vec,list(cut(dat$age,breaks=agecut),dat[,var.kid]),sum,na.rm=T)))
@@ -63,7 +71,6 @@ fit.matrices = function(dat,wi,X,count.names,agecut,iprem,idern,ipremy,iderny,im
 	# Assignation des objets requis par nlognb et contrc.fonc dans l'environnement parent
 	assign("nn",nn,env = parent.frame())
 	assign("y",y,env = parent.frame())
-	assign("X",X,env = parent.frame())
 	assign("w",w,env = parent.frame())
 	assign("wj",wj,env = parent.frame())
 	assign("iniv",iniv,env = parent.frame())
@@ -71,7 +78,7 @@ fit.matrices = function(dat,wi,X,count.names,agecut,iprem,idern,ipremy,iderny,im
 	assign("idern",idern,env = parent.frame())	
 	assign("imat",imat,env = parent.frame())
 	# Estimation des matrices
-	obj = ROI:::nlminb2(start=theta0,objective=nlognb,eqFun=contrc.fonc)
+	obj = ROI:::nlminb2(start=theta0,objective=objective,eqFun=contrc.fonc)
 	if (boot) return(obj$par)
 	else
 	{
