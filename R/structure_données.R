@@ -27,7 +27,9 @@ retraite.struct = matrix(c(T,F,T,F,F,T),1,6)
 concensus.struct = adulte.struct
 
 enfant.5mat.struct = matrix(c(T,F,rep(T,3)),1,5)
-
+adulte.5mat.struct = matrix(c(rep(T,5)),1,5)
+retraite.5mat.struct = matrix(c(T,T,F,F,T),1,5)
+concensus.5mat.struct = adulte.5mat.struct
 
 
 # Structures stratifiant pour les étudiants et les travailleurs
@@ -60,6 +62,8 @@ concensus.strat.struct = adulte.strat.struct
 # Matrices à 8 tranches d'âge
 # Avec limite supérieure pour éliminer tranches d'âges avancées sans effectifs
 imat.8cat = list(enfant.struct,enfant.struct,ado.struct,adulte.struct,adulte.struct,adulte.struct,adulte.struct,retraite.struct,concensus.struct)
+
+imat.5mat.8cat = list(enfant.5mat.struct,enfant.5mat.struct,adulte.5mat.struct,adulte.5mat.struct,adulte.5mat.struct,adulte.5mat.struct,adulte.5mat.struct,retraite.5mat.struct,concensus.5mat.struct)
 
 imat.strat.8cat = list(enfant.strat.struct,enfant.strat.struct,ado.strat.struct,adulte.strat.struct,adulte.strat.struct,adulte.strat.struct,adulte.strat.struct,retraite.struct,concensus.strat.struct)
 
