@@ -4,12 +4,8 @@
 #nn=10
 #iniv.10cat = cumsum(c(0,7,nn,8,rep(nn,2))*nn)
 iprem = c(4,1,3,1,1,1)
-<<<<<<< Updated upstream
 idern.10cat = c(10,9,10,9,9,10)
-=======
-#idern.10cat = c(10,9,10,9,9,10)
-idern.10cat = c(10,9,10,8,9,10)
->>>>>>> Stashed changes
+#idern.10cat = c(10,9,10,8,9,10)
 #np.10cat = sum(c(7,nn,8,rep(nn,3))*nn)
 #np.10cat = sum((idern.10cat-iprem+1)*nn)
 # Matrices à 8 tranches d'âge
@@ -17,6 +13,10 @@ nn=8
 idern.8cat = idern.10cat - 2
 iniv.8cat = cumsum(c(0,(idern.8cat-iprem+1)[-length(iprem)])*nn)
 np.8cat = sum((idern.8cat-iprem+1)*nn)
+iprem.5mat = iprem[2:6]
+idern.5mat.8cat = idern.8cat[c(1,3:6)]
+iniv.5mat.8cat = cumsum(c(0,(idern.5mat.8cat-iprem.5mat+1)[-length(iprem.5mat)])*nn)
+np.5mat.8cat = sum((idern.5mat.8cat-iprem.5mat+1)*nn)
 
 # Structures en supposant que tous les ado et adultes peuvent étudier et travailler
 # Pour enfant.struct et ado.struct, la 1re ligne est arbitraire car les effectifs sont 0
@@ -25,6 +25,10 @@ ado.struct = matrix(rep(c(F,rep(T,5)),2),2,6,byrow=T)
 adulte.struct = matrix(c(T,F,F,T,rep(T,8)),2,6)
 retraite.struct = matrix(c(T,F,T,F,F,T),1,6)
 concensus.struct = adulte.struct
+
+enfant.5mat.struct = matrix(c(T,F,rep(T,3)),1,5)
+
+
 
 # Structures stratifiant pour les étudiants et les travailleurs
 # Ici on suppose que tous les enfants et ados vont à l'école

@@ -22,7 +22,7 @@ fit.matrices = function(dat,wi,X,count.names,agecut,iprem,idern,ipremy,iderny,im
 	if (missing(X)) objective = nlognb.counts
 	else
 	{
-		if (nrow(X) != length(theta0)) stop ("Number of rows of X ",nrow(X)," does not equal the length of theta0",length(theta0))
+		if (ncol(X) != (length(theta0)-1)) stop ("Number of columns of X ",ncol(X)," does not equal the length of theta0 minus one",length(theta0)-1)
 		assign("X",X,env = parent.frame())
 		objective = nlognb
 	}
