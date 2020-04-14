@@ -50,6 +50,19 @@ adulte.strat.struct[7,] = c(F,T,T,F,T,T)
 adulte.strat.struct[8,] = c(F,T,T,T,T,T)
 concensus.strat.struct = adulte.strat.struct
 
+enfant.strat.5mat.struct = matrix(F,4,5)
+enfant.strat.5mat.struct[3,] = c(T,F,rep(T,3))
+ado.strat.5mat.struct = matrix(F,4,5)
+ado.strat.5mat.struct[3,] = c(T,F,rep(T,3))
+ado.strat.5mat.struct[4,] = c(rep(T,5))
+adulte.strat.5mat.struct = matrix(F,4,5)
+adulte.strat.5mat.struct[1,] = c(T,F,F,T,T)
+adulte.strat.5mat.struct[2,] = c(T,F,T,T,T)
+adulte.strat.5mat.struct[3,] = c(T,T,F,T,T)
+adulte.strat.5mat.struct[4,] = c(T,T,T,T,T)
+concensus.strat.5mat.struct = adulte.strat.5mat.struct
+
+
 # Note: le dernier élément de imat ne sert pas. Les contraintes sur les matrices applicables au dernier groupe
 # doivent être imposées dans idern
 
@@ -66,4 +79,7 @@ imat.8cat = list(enfant.struct,enfant.struct,ado.struct,adulte.struct,adulte.str
 imat.5mat.8cat = list(enfant.5mat.struct,enfant.5mat.struct,adulte.5mat.struct,adulte.5mat.struct,adulte.5mat.struct,adulte.5mat.struct,adulte.5mat.struct,retraite.5mat.struct,concensus.5mat.struct)
 
 imat.strat.8cat = list(enfant.strat.struct,enfant.strat.struct,ado.strat.struct,adulte.strat.struct,adulte.strat.struct,adulte.strat.struct,adulte.strat.struct,retraite.struct,concensus.strat.struct)
+
+imat.strat.5mat.8cat = list(enfant.strat.5mat.struct,enfant.strat.5mat.struct,ado.strat.5mat.struct,adulte.strat.5mat.struct,adulte.strat.5mat.struct,adulte.strat.5mat.struct,adulte.strat.5mat.struct,retraite.struct,concensus.strat.5mat.struct)
+
 
