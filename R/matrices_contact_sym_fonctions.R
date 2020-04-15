@@ -40,7 +40,10 @@ fit.matrices = function(dat,wi,X,count.names,agecut,iprem,idern,ipremy,iderny,im
 		wt = tapply(wi,list(dat[,var.kid],cut(dat$age,breaks=agecut)),sum,na.rm=T)		
 	}			
 	if (missing(var.occup))
+	{
 		wj = wtt = wte = wt
+		wj[is.na(wj)] = 0
+	}
 	else
 	{
 		if (missing(var.kid)) wj = tapply(wi,list(dat[,var.occup],cut(dat$age,breaks=agecut)),sum,na.rm=T)
