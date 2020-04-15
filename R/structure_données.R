@@ -51,9 +51,9 @@ adulte.strat.struct[8,] = c(F,T,T,T,T,T)
 concensus.strat.struct = adulte.strat.struct
 
 enfant.strat.5mat.struct = matrix(F,4,5)
-enfant.strat.5mat.struct[3,] = c(T,F,rep(T,3))
+enfant.strat.5mat.struct[2,] = c(T,F,rep(T,3))
 ado.strat.5mat.struct = matrix(F,4,5)
-ado.strat.5mat.struct[3,] = c(T,F,rep(T,3))
+ado.strat.5mat.struct[2,] = c(T,F,rep(T,3))
 ado.strat.5mat.struct[4,] = c(rep(T,5))
 adulte.strat.5mat.struct = matrix(F,4,5)
 adulte.strat.5mat.struct[1,] = c(T,F,F,T,T)
