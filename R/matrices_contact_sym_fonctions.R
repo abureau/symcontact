@@ -17,6 +17,8 @@ fit.matrices = function(dat,wi,X,count.names,agecut,iprem,idern,ipremy,iderny,im
 #' @param imat List of boolean matrices where each row indicates the contact matrices applicable to a different subset of subjects
 #' @param theta0 Vector of initial parameter values (log counts and dispersion parameters) to be passed to nlminb2
 #' @param iniv Vector of the index preceeding the first parameter of each contact matrix in the vector theta0
+#' @param var.kid Character string representing the name of the variable in dat indicating whether a subject lives in a household with children
+#' @param var.occup Character string representing the name of the variable in dat indicating the occupational category of a subject (e.g. at work, at school, or both)
 #' @param boot Boolean indicating whether to return only a vector of statistics. The default is FALSE, which implies the object produced by nlminb2 will be returned
 {
 	if (missing(X)) objective = nlognb.counts
