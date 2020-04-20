@@ -103,7 +103,7 @@ fit.matrices = function(dat,wi,X,count.names,agecut,iprem,idern,ipremy,iderny,im
 	assign("imat",imat,env = parent.frame())
 	# Estimation des matrices
 	obj = ROI:::nlminb2(start=theta0,objective=objective,eqFun=contrc.fonc)
-	if (boot) return(obj$par)
+	if (boot) return(c(obj$par,as.vector(wj))
 	else
 	{
 		obj$wj = wj
