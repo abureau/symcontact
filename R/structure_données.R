@@ -82,4 +82,7 @@ imat.strat.8cat = list(enfant.strat.struct,enfant.strat.struct,ado.strat.struct,
 
 imat.strat.5mat.8cat = list(enfant.strat.5mat.struct,enfant.strat.5mat.struct,ado.strat.5mat.struct,adulte.strat.5mat.struct,adulte.strat.5mat.struct,adulte.strat.5mat.struct,adulte.strat.5mat.struct,retraite.struct,concensus.strat.5mat.struct)
 
+# Une seule matrice
+bidon = matrix(TRUE,1,1)
+imat1.8cat = list(bidon,bidon,bidon,bidon,bidon,bidon,bidon,bidon,bidon)
 
