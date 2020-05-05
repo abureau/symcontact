@@ -46,12 +46,14 @@ fit.matrices = function(dat,wi,X,count.names,agecut,iprem,idern,ipremy,iderny,im
 	}
 	else
 	{
-		if (missing(var.kid)) wj = tapply(wi,list(dat[,var.occup],cut(dat$age,breaks=agecut)),mean,na.rm=T)
+		if (missing(var.kid)) wj = tapply(wi,list(dat[,var.occup],cut(dat$age,breaks=agecut)),sum,na.rm=T)
 		else 
 		{
-			tmp = tapply(wi,list(dat[,var.occup],dat[,var.kid],cut(dat$age,breaks=agecut)),mean,na.rm=T)
+			tmp = tapply(wi,list(dat[,var.occup],dat[,var.kid],cut(dat$age,breaks=agecut)),sum,na.rm=T)
 			wj = apply(tmp,3,function(mat) stack(data.frame(mat))$values)
 		}
+		n.par.age = tapply(wi,cut(dat$age,breaks=agecut),function(vec) sum(!is.na(vec)))
+		wj = wj/matrix(rep(n.par.age,nrow(wj)),nrow=nrow(wj),byrow=T)
 		wj[is.na(wj)] = 0
 
 		# Poids pour la matrice du travail
