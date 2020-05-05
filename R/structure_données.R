@@ -4,19 +4,26 @@
 #nn=10
 #iniv.10cat = cumsum(c(0,7,nn,8,rep(nn,2))*nn)
 iprem = c(4,1,3,1,1,1)
-idern.10cat = c(10,9,10,9,9,10)
+idern.10cat = c(10,9,9,8,8,10)
+idern.10cat.Can = c(10,10,10,10,10,10)
 #idern.10cat = c(10,9,10,8,9,10)
 #np.10cat = sum(c(7,nn,8,rep(nn,3))*nn)
 #np.10cat = sum((idern.10cat-iprem+1)*nn)
 # Matrices à 8 tranches d'âge
 nn=8
 idern.8cat = idern.10cat - 2
+idern.8cat.Can = idern.10cat.Can - 2
 iniv.8cat = cumsum(c(0,(idern.8cat-iprem+1)[-length(iprem)])*nn)
+iniv.8cat.Can = cumsum(c(0,(idern.8cat.Can-iprem+1)[-length(iprem)])*nn)
 np.8cat = sum((idern.8cat-iprem+1)*nn)
+np.8cat.Can = sum((idern.8cat.Can-iprem+1)*nn)
 iprem.5mat = iprem[2:6]
 idern.5mat.8cat = idern.8cat[c(1,3:6)]
+idern.5mat.8cat.Can = idern.8cat.Can[c(1,3:6)]
 iniv.5mat.8cat = cumsum(c(0,(idern.5mat.8cat-iprem.5mat+1)[-length(iprem.5mat)])*nn)
+iniv.5mat.8cat.Can = cumsum(c(0,(idern.5mat.8cat.Can-iprem.5mat+1)[-length(iprem.5mat)])*nn)
 np.5mat.8cat = sum((idern.5mat.8cat-iprem.5mat+1)*nn)
+np.5mat.8cat.Can = sum((idern.5mat.8cat.Can-iprem.5mat+1)*nn)
 
 # Structures en supposant que tous les ado et adultes peuvent étudier et travailler
 # Pour enfant.struct et ado.struct, la 1re ligne est arbitraire car les effectifs sont 0
@@ -28,12 +35,16 @@ concensus.struct = adulte.struct
 
 enfant.5mat.struct = matrix(c(T,F,rep(T,3)),1,5)
 adulte.5mat.struct = matrix(c(rep(T,5)),1,5)
-retraite.5mat.struct = matrix(c(T,T,F,F,T),1,5)
+preretraite.5mat.struct = matrix(c(T,T,F,F,T),1,5)
+retraite.5mat.struct = matrix(c(T,F,F,F,T),1,5)
 concensus.5mat.struct = adulte.5mat.struct
 
 
 # Structures stratifiant pour les étudiants et les travailleurs
-# Ici on suppose que tous les enfants et ados vont à l'école
+# Ici on suppose que tous les enfants de 6 ans et plus et les ados vont à l'école
+petits.strat.struct = matrix(F,8,6)
+petits.strat.struct[5,] = c(F,T,F,F,rep(T,2))
+petits.strat.struct[6,] = c(F,T,F,rep(T,3))
 enfant.strat.struct = matrix(F,8,6)
 enfant.strat.struct[6,] = c(F,T,F,rep(T,3))
 ado.strat.struct = matrix(F,8,6)
@@ -48,6 +59,15 @@ adulte.strat.struct[5,] = c(F,T,F,F,T,T)
 adulte.strat.struct[6,] = c(F,T,F,T,T,T)
 adulte.strat.struct[7,] = c(F,T,T,F,T,T)
 adulte.strat.struct[8,] = c(F,T,T,T,T,T)
+preretraite.strat.struct = matrix(F,8,6)
+preretraite.strat.struct[1,] = c(T,F,F,F,F,T)
+preretraite.strat.struct[2,] = c(T,F,F,T,F,T)
+preretraite.strat.struct[3,] = c(T,F,T,F,F,T)
+preretraite.strat.struct[4,] = c(T,F,T,T,F,T)
+preretraite.strat.struct[5,] = c(F,T,F,F,F,T)
+preretraite.strat.struct[6,] = c(F,T,F,T,F,T)
+preretraite.strat.struct[7,] = c(F,T,T,F,F,T)
+preretraite.strat.struct[8,] = c(F,T,T,T,F,T)
 concensus.strat.struct = adulte.strat.struct
 
 enfant.strat.5mat.struct = matrix(F,4,5)
@@ -76,10 +96,17 @@ concensus.strat.5mat.struct = adulte.strat.5mat.struct
 # Avec limite supérieure pour éliminer tranches d'âges avancées sans effectifs
 imat.8cat = list(enfant.struct,enfant.struct,ado.struct,adulte.struct,adulte.struct,adulte.struct,adulte.struct,retraite.struct,concensus.struct)
 
-imat.5mat.8cat = list(enfant.5mat.struct,enfant.5mat.struct,adulte.5mat.struct,adulte.5mat.struct,adulte.5mat.struct,adulte.5mat.struct,adulte.5mat.struct,retraite.5mat.struct,concensus.5mat.struct)
+imat.5mat.8cat = list(enfant.5mat.struct,enfant.5mat.struct,adulte.5mat.struct,adulte.5mat.struct,adulte.5mat.struct,adulte.5mat.struct,preretraite.5mat.struct,retraite.5mat.struct,concensus.5mat.struct)
+imat.5mat.8cat.Can = list(enfant.5mat.struct,enfant.5mat.struct,adulte.5mat.struct,adulte.5mat.struct,adulte.5mat.struct,adulte.5mat.struct,adulte.5mat.struct,retraite.5mat.struct,concensus.5mat.struct)
 
-imat.strat.8cat = list(enfant.strat.struct,enfant.strat.struct,ado.strat.struct,adulte.strat.struct,adulte.strat.struct,adulte.strat.struct,adulte.strat.struct,retraite.struct,concensus.strat.struct)
+
+imat.strat.8cat = list(petits.strat.struct,enfant.strat.struct,ado.strat.struct,adulte.strat.struct,adulte.strat.struct,adulte.strat.struct,preretraite.strat.struct,retraite.struct,concensus.strat.struct)
+imat.strat.8cat.Can = list(petits.strat.struct,enfant.strat.struct,ado.strat.struct,adulte.strat.struct,adulte.strat.struct,adulte.strat.struct,adulte.strat.struct,retraite.struct,concensus.strat.struct)
+
 
 imat.strat.5mat.8cat = list(enfant.strat.5mat.struct,enfant.strat.5mat.struct,ado.strat.5mat.struct,adulte.strat.5mat.struct,adulte.strat.5mat.struct,adulte.strat.5mat.struct,adulte.strat.5mat.struct,retraite.struct,concensus.strat.5mat.struct)
 
+# Une seule matrice
+bidon = matrix(TRUE,1,1)
+imat1.8cat = list(bidon,bidon,bidon,bidon,bidon,bidon,bidon,bidon,bidon)
 

@@ -34,12 +34,12 @@ fit.matrices = function(dat,wi,X,count.names,agecut,iprem,idern,ipremy,iderny,im
 	if (missing(var.kid))
 	{
 		tab = t(apply(dat[,count.names],2,function(vec) tapply(vec,cut(dat$age,breaks=agecut),sum,na.rm=T)))
-		wt = matrix(tapply(wi,cut(dat$age,breaks=agecut),sum,na.rm=T),1,nn)		
+		wt = matrix(tapply(wi,cut(dat$age,breaks=agecut),mean,na.rm=T),1,nn)		
 	}
 	else 
 	{
 		tab = t(apply(dat[,count.names],2,function(vec) tapply(vec,list(cut(dat$age,breaks=agecut),dat[,var.kid]),sum,na.rm=T)))
-		wt = tapply(wi,list(dat[,var.kid],cut(dat$age,breaks=agecut)),sum,na.rm=T)		
+		wt = tapply(wi,list(dat[,var.kid],cut(dat$age,breaks=agecut)),mean,na.rm=T)		
 	}			
 	if (missing(var.occup))
 	{
@@ -54,6 +54,8 @@ fit.matrices = function(dat,wi,X,count.names,agecut,iprem,idern,ipremy,iderny,im
 			tmp = tapply(wi,list(dat[,var.occup],dat[,var.kid],cut(dat$age,breaks=agecut)),sum,na.rm=T)
 			wj = apply(tmp,3,function(mat) stack(data.frame(mat))$values)
 		}
+		n.par.age = tapply(wi,cut(dat$age,breaks=agecut),function(vec) sum(!is.na(vec)))
+		wj = wj/matrix(rep(n.par.age,nrow(wj)),nrow=nrow(wj),byrow=T)
 		wj[is.na(wj)] = 0
 
 		# Poids pour la matrice du travail
@@ -105,7 +107,7 @@ fit.matrices = function(dat,wi,X,count.names,agecut,iprem,idern,ipremy,iderny,im
 	assign("imat",imat,env = parent.frame())
 	# Estimation des matrices
 	obj = ROI:::nlminb2(start=theta0,objective=objective,eqFun=contrc.fonc)
-	if (boot) return(obj$par)
+	if (boot) return(c(obj$par,as.vector(wj)))
 	else
 	{
 		obj$wj = wj
