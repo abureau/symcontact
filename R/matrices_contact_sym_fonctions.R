@@ -46,26 +46,28 @@ fit.matrices = function(dat,wi,X,count.names,agecut,iprem,idern,ipremy,iderny,im
 	}
 	else
 	{
+		# Ici on somme les poids par catégorie d'occupation
 		if (missing(var.kid)) wj = tapply(wi,list(dat[,var.occup],cut(dat$age,breaks=agecut)),sum,na.rm=T)
 		else 
 		{
 			tmp = tapply(wi,list(dat[,var.occup],dat[,var.kid],cut(dat$age,breaks=agecut)),sum,na.rm=T)
 			wj = apply(tmp,3,function(mat) stack(data.frame(mat))$values)
 		}
+		# Ensuite on divise les poids par les effectifs totaux par tranche d'âge
 		n.par.age = tapply(wi,cut(dat$age,breaks=agecut),function(vec) sum(!is.na(vec)))
 		wj = wj/matrix(rep(n.par.age,nrow(wj)),nrow=nrow(wj),byrow=T)
 		wj[is.na(wj)] = 0
 
-		# Poids pour la matrice du travail
+		# Poids pour la matrice du travail (on somme les lignes de wj incluant des travailleurs)
 		if (missing(var.kid))
 		{
-			wtt = wj[3:4,]
-			wte = wj[c(2,4),]
+			wtt = matrix(apply(wj[c(3,4),],2,sum),1,nn)
+			wte = matrix(apply(wj[c(2,4),],2,sum),1,nn)
 		}
 		else
 		{
 			wtt = rbind(apply(wj[c(3,4),],2,sum),apply(wj[c(7,8),],2,sum))
-			# Poids pour la matrice de l'école
+			# Poids pour la matrice de l'école (on somme les lignes de wj incluant des gens fréquentant l'école)
 			wte = rbind(apply(wj[c(2,4),],2,sum),apply(wj[c(6,8),],2,sum))
 		}		
 	}
