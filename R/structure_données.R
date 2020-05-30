@@ -1,23 +1,23 @@
-# Création des objets décrivant la structure des données 
+# Création des objets décrivant la structure des données
 
 # Matrices à 10 tranches d'âge
 #nn=10
 #iniv.10cat = cumsum(c(0,7,nn,8,rep(nn,2))*nn)
-iprem = c(4,1,3,1,1,1)
+iprem.8 = c(4,1,3,1,1,1)
 idern.10cat = c(10,9,9,8,8,10)
 idern.10cat.Can = c(10,10,10,10,10,10)
 #idern.10cat = c(10,9,10,8,9,10)
 #np.10cat = sum(c(7,nn,8,rep(nn,3))*nn)
-#np.10cat = sum((idern.10cat-iprem+1)*nn)
+#np.10cat = sum((idern.10cat-iprem.8+1)*nn)
 # Matrices à 8 tranches d'âge
 nn=8
 idern.8cat = idern.10cat - 2
 idern.8cat.Can = idern.10cat.Can - 2
-iniv.8cat = cumsum(c(0,(idern.8cat-iprem+1)[-length(iprem)])*nn)
-iniv.8cat.Can = cumsum(c(0,(idern.8cat.Can-iprem+1)[-length(iprem)])*nn)
-np.8cat = sum((idern.8cat-iprem+1)*nn)
-np.8cat.Can = sum((idern.8cat.Can-iprem+1)*nn)
-iprem.5mat = iprem[2:6]
+iniv.8cat = cumsum(c(0,(idern.8cat-iprem.8+1)[-length(iprem.8)])*nn)
+iniv.8cat.Can = cumsum(c(0,(idern.8cat.Can-iprem.8+1)[-length(iprem.8)])*nn)
+np.8cat = sum((idern.8cat-iprem.8+1)*nn)
+np.8cat.Can = sum((idern.8cat.Can-iprem.8+1)*nn)
+iprem.5mat = iprem.8[2:6]
 idern.5mat.8cat = idern.8cat[c(1,3:6)]
 idern.5mat.8cat.Can = idern.8cat.Can[c(1,3:6)]
 iniv.5mat.8cat = cumsum(c(0,(idern.5mat.8cat-iprem.5mat+1)[-length(iprem.5mat)])*nn)
@@ -109,4 +109,3 @@ imat.strat.5mat.8cat = list(enfant.strat.5mat.struct,enfant.strat.5mat.struct,ad
 # Une seule matrice
 bidon = matrix(TRUE,1,1)
 imat1.8cat = list(bidon,bidon,bidon,bidon,bidon,bidon,bidon,bidon,bidon)
-
