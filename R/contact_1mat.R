@@ -1,4 +1,4 @@
-contact.1mat = function(theta,Nj=1,alpha=0.05,offset=FALSE)
+contact.1mat = function(theta,Nj=1,alpha=0.05,offset=FALSE,scaling=FALSE)
 #' @description Reconstruction of contact matrix and estimation of confidence bounds from coefficients when there is a single contact matrix
 #' @param theta Vector of parameters
 #' @param Nj Matrix of sample sizes
@@ -15,7 +15,7 @@ contact.1mat = function(theta,Nj=1,alpha=0.05,offset=FALSE)
 	# On divise par racine de 2 les termes hors diagnonale obtenus en prenant la moyenne
 	mult = matrix(1/sqrt(2),nn,nn)
 	diag(mult) = 1
-# On construit les bornes de confiance sur l'échelle log
+# On construit les bornes de confiance sur l'Ã©chelle log
 	l = mult*qnorm(1-alpha/2)*sqrt((1/mu+1/a)/Nj)
 	lb = exp(b-l)/n
 	ub = exp(b+l)/n
