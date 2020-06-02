@@ -1,4 +1,4 @@
-contact.1mat = function(theta,Nj=1,alpha=0.05,offset=FALSE,scaling=FALSE)
+contact.1mat = function(theta,Nj=1,alpha=0.05,scaling=FALSE)
 #' @description Reconstruction of contact matrix and estimation of confidence bounds from coefficients when there is a single contact matrix
 #' @param theta Vector of parameters
 #' @param Nj Matrix of sample sizes
