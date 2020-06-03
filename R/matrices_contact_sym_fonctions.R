@@ -229,6 +229,8 @@ fit.rates.matrices = function(dat,wi,X,count.names,agecut,iprem,idern,ipremy,ide
 		}
 		}
 	}
+	# normalisation des poids
+	w = w/nvec
 	
 	# Assignation des objets requis par nlognb et contrc.fonc dans l'environnement parent
 	assign("nn",nn,env = parent.frame())
