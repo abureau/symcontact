@@ -109,3 +109,37 @@ imat.strat.5mat.8cat = list(enfant.strat.5mat.struct,enfant.strat.5mat.struct,ad
 # Une seule matrice
 bidon = matrix(TRUE,1,1)
 imat1.8cat = list(bidon,bidon,bidon,bidon,bidon,bidon,bidon,bidon,bidon)
+
+# Construction de l'objet imat.13mat.8cat :
+
+# On a 8 catégories d'âge et 13 lieux : (en ordre)
+
+# maison : ménage avec 0-17 ans, ménage sans 0-17 ans
+# travail : santé, vente&service, autres
+# école : préscolaire,  primaire, secondaire,  post-secondaire, indéterminé
+# transport, loisirs, autres
+
+# Explication des notation :
+# petit.enfant : [0,5]
+# enfant : [6,11]
+# ado : [12,17]
+# jeune adulte : [18:25]
+# adulte : [26:65]
+# retraite : [66:75]
+# retraite seniors : [76:100]
+
+enfant.struct = matrix(c(T,F,F,F,F,T,T,F,F,F,T,T,T),1,13,byrow=T)
+
+ado.struct = matrix(c(T,F,F,T,T,F,T,T,T,F,T,T,T),1,13,byrow=T)
+
+jeune.adulte.struct = matrix(c(T,T,T,T,T,T,F,T,T,T,T,T,T),1,13,byrow=T)
+
+adulte.struct = matrix(c(T,T,T,T,T,T,T,T,T,T,T,T,T),1,13,byrow=T)
+
+retraite.struct = matrix(c(T,T,T,T,T,F,F,F,F,T,T,T,T),1,13,byrow=T)
+
+retraite.seniors.struct = matrix(c(F,T,F,F,T,F,F,F,F,F,T,T,T),1,13,byrow=T)
+
+concensus.struct = matrix(c(T,T,T,T,T,T,T,T,T,T,T,T,T),1,13,byrow=T)
+
+imat.13mat.8cat = list(enfant.struct,enfant.struct,ado.struct,jeune.adulte.struct,adulte.struct,adulte.struct,retraite.struct,retraite.seniors.struct,concensus.struct)
