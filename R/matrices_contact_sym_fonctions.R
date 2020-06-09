@@ -136,7 +136,7 @@ fit.rates.matrices = function(dat,wi,X,count.names,agecut,iprem,idern,ipremy,ide
 	{
 		if (ncol(X) != (length(theta0)-1)) stop ("Number of columns of X ",ncol(X)," does not equal the length of theta0 minus one",length(theta0)-1)
 		assign("X",X,env = parent.frame())
-		objective = nlognb
+		objective = nlognb.rates
 	}
 
 	nn = length(agecut)-1
@@ -265,6 +265,20 @@ nlognb = function(theta)
 	ll = 0
 	for (i in 1:length(y)) ll = ll + w[i]*dnbinom(x= y[i], size=a, mu=mu[i], log = TRUE)
 	return (-ll)
+}
+
+nlognb.rates = function(theta)
+  #' @param theta Vector of parameters
+  #' @details Computes minus the log-likelihood of a negative binomial distribution. There must be a vector y of contact counts, a design matrix X and a vector of weights w in the environment. The last parameter is the scale parameter, all others are regression coefficients.
+  #' @return minus the log-likelihood
+{
+  # On sépare le paramètre d'échelle (dernier) des coefficients
+  b = theta[-length(theta)]
+  a = theta[length(theta)]
+  mu = nvec*exp(X%*%b)
+  ll = 0
+  for (i in 1:length(y)) ll = ll + w[i]*dnbinom(x= y[i], size=a, mu=mu[i], log = TRUE)
+  return (-ll)
 }
 
 nlognb.counts = function(theta)
