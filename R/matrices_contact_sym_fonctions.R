@@ -3,11 +3,12 @@
 
 # Fichier des fonctions
 
-fit.matrices = function(dat,wi,X,count.names,agecut,iprem,idern,ipremy,iderny,imat,theta0,iniv,var.kid,var.occup,boot=F)
+fit.matrices = function(dat,wi,X,duration,count.names,agecut,iprem,idern,ipremy,iderny,imat,theta0,iniv,var.kid,var.occup,boot=F)
 #' @description Fitting contact matrices for multiple locations under the constraint that the matrix of the total of the contacts is symmetrical.
 #' @param dat Matrix containing the contacts counts for all age slices and all locations, in wide format
 #' @param wi Vector of individual weights
 #' @param X Design matrix for the cross-tabulated data (optionnal)
+#' @param duration Vector of durations of observations of contacts (optionnal)
 #' @param count.names Vector of names of the columns of dat containing the contacts counts
 #' @param agecut Vector of breakpoints of the age slices for the participants (should match the age slices for the contacts)
 #' @param iprem Vector of the first age slice for each contact matrix
@@ -54,7 +55,8 @@ fit.matrices = function(dat,wi,X,count.names,agecut,iprem,idern,ipremy,iderny,im
 			wj = apply(tmp,3,function(mat) stack(data.frame(mat))$values)
 		}
 		# Ensuite on divise les poids par les effectifs totaux par tranche d'âge
-		n.par.age = tapply(wi,cut(dat$age,breaks=agecut),function(vec) sum(!is.na(vec)))
+		if (!missing(duration)) n.par.age = tapply(duration,cut(dat$age,breaks=agecut),sum,na.rm=T)	
+		else n.par.age = tapply(wi,cut(dat$age,breaks=agecut),function(vec) sum(!is.na(vec)))
 		wj = wj/matrix(rep(n.par.age,nrow(wj)),nrow=nrow(wj),byrow=T)
 		wj[is.na(wj)] = 0
 
@@ -115,11 +117,12 @@ fit.matrices = function(dat,wi,X,count.names,agecut,iprem,idern,ipremy,iderny,im
 	}
 }
 
-fit.rates.matrices = function(dat,wi,X,count.names,agecut,iprem,idern,ipremy,iderny,imat,theta0,iniv,var.kid,var.occup,boot=F)
+fit.rates.matrices = function(dat,wi,X,duration,count.names,agecut,iprem,idern,ipremy,iderny,imat,theta0,iniv,var.kid,var.occup,boot=F)
 #' @description Fitting contact matrices for multiple locations under the constraint that the matrix of the total of the contacts is symmetrical.
 #' @param dat Matrix containing the contacts counts for all age slices and all locations, in wide format
 #' @param wi Vector of individual weights
 #' @param X Design matrix for the cross-tabulated data (optionnal)
+#' @param duration Vector of durations of observations of contacts (optionnal)
 #' @param count.names Vector of names of the columns of dat containing the contacts counts
 #' @param agecut Vector of breakpoints of the age slices for the participants (should match the age slices for the contacts)
 #' @param iprem Vector of the first age slice for each contact matrix
@@ -144,14 +147,16 @@ fit.rates.matrices = function(dat,wi,X,count.names,agecut,iprem,idern,ipremy,ide
 	if (missing(var.kid))
 	{
 		tab = t(apply(dat[,count.names],2,function(vec) tapply(vec,cut(dat$age,breaks=agecut),sum,na.rm=T)))
-		wt = matrix(tapply(wi,cut(dat$age,breaks=agecut),sum,na.rm=T),1,nn)		
-		n.par.age = matrix(tapply(wi,cut(dat$age,breaks=agecut),function(vec) sum(!is.na(vec))),1,nn)	
+		wt = matrix(tapply(wi,cut(dat$age,breaks=agecut),sum,na.rm=T),1,nn)
+		if (!missing(duration)) n.par.age = matrix(tapply(duration,cut(dat$age,breaks=agecut),sum,na.rm=T),1,nn)	
+		else n.par.age = matrix(tapply(wi,cut(dat$age,breaks=agecut),function(vec) sum(!is.na(vec))),1,nn)	
 	}
 	else 
 	{
 		tab = t(apply(dat[,count.names],2,function(vec) tapply(vec,list(cut(dat$age,breaks=agecut),dat[,var.kid]),sum,na.rm=T)))
 		wt = tapply(wi,list(dat[,var.kid],cut(dat$age,breaks=agecut)),sum,na.rm=T)		
-		n.par.age = tapply(wi,list(dat[,var.kid],cut(dat$age,breaks=agecut)),function(vec) sum(!is.na(vec)))	
+		if (!missing(duration)) n.par.age = tapply(duration,list(dat[,var.kid],cut(dat$age,breaks=agecut)),sum,na.rm=T)
+		else n.par.age = tapply(wi,list(dat[,var.kid],cut(dat$age,breaks=agecut)),function(vec) sum(!is.na(vec)))	
 	}			
 	if (missing(var.occup))
 	{
