@@ -47,11 +47,12 @@ fit.matrices = function(dat,wi,X,duration,count.names,agecut,iprem,idern,ipremy,
 	}
 	else
 	{
+	  if (!missing(duration)) d = duration else d = 1
 		# Ici on somme les poids par catégorie d'occupation
-		if (missing(var.kid)) wj = tapply(wi,list(dat[,var.occup],cut(dat$age,breaks=agecut)),sum,na.rm=T)
+		if (missing(var.kid)) wj = tapply(d*wi,list(dat[,var.occup],cut(dat$age,breaks=agecut)),sum,na.rm=T)
 		else 
 		{
-			tmp = tapply(wi,list(dat[,var.occup],dat[,var.kid],cut(dat$age,breaks=agecut)),sum,na.rm=T)
+			tmp = tapply(d*wi,list(dat[,var.occup],dat[,var.kid],cut(dat$age,breaks=agecut)),sum,na.rm=T)
 			wj = apply(tmp,3,function(mat) stack(data.frame(mat))$values)
 		}
 		# Ensuite on divise les poids par les effectifs totaux par tranche d'âge
@@ -147,16 +148,30 @@ fit.rates.matrices = function(dat,wi,X,duration,count.names,agecut,iprem,idern,i
 	if (missing(var.kid))
 	{
 		tab = t(apply(dat[,count.names],2,function(vec) tapply(vec,cut(dat$age,breaks=agecut),sum,na.rm=T)))
-		wt = matrix(tapply(wi,cut(dat$age,breaks=agecut),sum,na.rm=T),1,nn)
-		if (!missing(duration)) n.par.age = matrix(tapply(duration,cut(dat$age,breaks=agecut),sum,na.rm=T),1,nn)	
-		else n.par.age = matrix(tapply(wi,cut(dat$age,breaks=agecut),function(vec) sum(!is.na(vec))),1,nn)	
-	}
+		if (!missing(duration))
+		{
+		  wt = matrix(tapply(wi*duration,cut(dat$age,breaks=agecut),sum,na.rm=T),1,nn)
+		  n.par.age = matrix(tapply(duration,cut(dat$age,breaks=agecut),sum,na.rm=T),1,nn)	
+		}
+		else 
+		{
+		  wt = matrix(tapply(wi,cut(dat$age,breaks=agecut),sum,na.rm=T),1,nn)
+		  n.par.age = matrix(tapply(wi,cut(dat$age,breaks=agecut),function(vec) sum(!is.na(vec))),1,nn)	
+    }
+}
 	else 
 	{
 		tab = t(apply(dat[,count.names],2,function(vec) tapply(vec,list(cut(dat$age,breaks=agecut),dat[,var.kid]),sum,na.rm=T)))
-		wt = tapply(wi,list(dat[,var.kid],cut(dat$age,breaks=agecut)),sum,na.rm=T)		
-		if (!missing(duration)) n.par.age = tapply(duration,list(dat[,var.kid],cut(dat$age,breaks=agecut)),sum,na.rm=T)
-		else n.par.age = tapply(wi,list(dat[,var.kid],cut(dat$age,breaks=agecut)),function(vec) sum(!is.na(vec)))	
+		if (!missing(duration)) 
+		  {
+		  wt = tapply(wi*duration,list(dat[,var.kid],cut(dat$age,breaks=agecut)),sum,na.rm=T)		
+		  n.par.age = tapply(duration,list(dat[,var.kid],cut(dat$age,breaks=agecut)),sum,na.rm=T)
+      }
+		else
+		  {
+		  wt = tapply(wi,list(dat[,var.kid],cut(dat$age,breaks=agecut)),sum,na.rm=T)		
+		  n.par.age = tapply(wi,list(dat[,var.kid],cut(dat$age,breaks=agecut)),function(vec) sum(!is.na(vec)))
+		  }
 	}			
 	if (missing(var.occup))
 	{
