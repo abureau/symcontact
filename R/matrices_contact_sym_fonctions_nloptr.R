@@ -108,7 +108,7 @@ fit.matrices = function(dat,wi,X,duration,count.names,agecut,iprem,idern,ipremy,
   assign("iprem",iprem,env = parent.frame())
   assign("idern",idern,env = parent.frame())
   assign("imat",imat,env = parent.frame())
-	# Estimation des matrices
+  # Estimation des matrices
   obj = nloptr::nloptr(x0 = theta0,eval_f = objective,eval_g_eq = contrc.fonc,opts = list("algorithm"="NLOPT_LN_AUGLAG","xtol_rel" = 1.0e-7,"print_level"=2,"maxeval"=1000,"local_opts"=list("algorithm" ="NLOPT_LN_COBYLA","xtol_rel" = 1.0e-7)))
 
   if (boot) return(c(obj$solution,as.vector(wj)))
@@ -283,6 +283,7 @@ nlognb = function(theta)
   # On sÃ©pare le paramÃ¨tre d'Ã©chelle (dernier) des coefficients
   b = theta[-length(theta)]
   a = theta[length(theta)]
+  a=ifelse(a>0,yes = a,no=0.01)
   mu = exp(X%*%b)
   ll = 0
   for (i in 1:length(y)) ll = ll + w[i]*dnbinom(x= y[i], size=a, mu=mu[i], log = TRUE)
@@ -297,6 +298,7 @@ nlognb.rates = function(theta)
   # On sÃ©pare le paramÃ¨tre d'Ã©chelle (dernier) des coefficients
   b = theta[-length(theta)]
   a = theta[length(theta)]
+  a=ifelse(a>0,yes = a,no=0.01)
   mu = nvec*exp(X%*%b)
   ll = 0
   for (i in 1:length(y)) ll = ll + w[i]*dnbinom(x= y[i], size=a, mu=mu[i], log = TRUE)
@@ -311,6 +313,7 @@ nlognb.counts = function(theta)
   # On sÃ©pare le paramÃ¨tre d'Ã©chelle (dernier) des coefficients
   mu = exp(theta[-length(theta)])
   a = theta[length(theta)]
+  a=ifelse(a>0,yes = a,no=0.01)
   ll = 0
   for (i in 1:length(y)) ll = ll + w[i]*dnbinom(x= y[i], size=a, mu=mu[i], log = TRUE)
   return (-ll)
