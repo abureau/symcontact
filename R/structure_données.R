@@ -1,23 +1,23 @@
-# Création des objets décrivant la structure des données 
+# Création des objets décrivant la structure des données
 
 # Matrices à 10 tranches d'âge
 #nn=10
 #iniv.10cat = cumsum(c(0,7,nn,8,rep(nn,2))*nn)
-iprem = c(4,1,3,1,1,1)
+iprem.8 = c(4,1,3,1,1,1)
 idern.10cat = c(10,9,9,8,8,10)
 idern.10cat.Can = c(10,10,10,10,10,10)
 #idern.10cat = c(10,9,10,8,9,10)
 #np.10cat = sum(c(7,nn,8,rep(nn,3))*nn)
-#np.10cat = sum((idern.10cat-iprem+1)*nn)
+#np.10cat = sum((idern.10cat-iprem.8+1)*nn)
 # Matrices à 8 tranches d'âge
 nn=8
 idern.8cat = idern.10cat - 2
 idern.8cat.Can = idern.10cat.Can - 2
-iniv.8cat = cumsum(c(0,(idern.8cat-iprem+1)[-length(iprem)])*nn)
-iniv.8cat.Can = cumsum(c(0,(idern.8cat.Can-iprem+1)[-length(iprem)])*nn)
-np.8cat = sum((idern.8cat-iprem+1)*nn)
-np.8cat.Can = sum((idern.8cat.Can-iprem+1)*nn)
-iprem.5mat = iprem[2:6]
+iniv.8cat = cumsum(c(0,(idern.8cat-iprem.8+1)[-length(iprem.8)])*nn)
+iniv.8cat.Can = cumsum(c(0,(idern.8cat.Can-iprem.8+1)[-length(iprem.8)])*nn)
+np.8cat = sum((idern.8cat-iprem.8+1)*nn)
+np.8cat.Can = sum((idern.8cat.Can-iprem.8+1)*nn)
+iprem.5mat = iprem.8[2:6]
 idern.5mat.8cat = idern.8cat[c(1,3:6)]
 idern.5mat.8cat.Can = idern.8cat.Can[c(1,3:6)]
 iniv.5mat.8cat = cumsum(c(0,(idern.5mat.8cat-iprem.5mat+1)[-length(iprem.5mat)])*nn)
@@ -84,7 +84,7 @@ concensus.strat.5mat.struct = adulte.strat.5mat.struct
 
 
 # Note: le dernier élément de imat ne sert pas. Les contraintes sur les matrices applicables au dernier groupe
-# doivent être imposées dans idern
+# doivent Ãªtre imposées dans idern
 
 # Matrices à 10 tranches d'âge
 # Sans limite supérieure
@@ -110,3 +110,328 @@ imat.strat.5mat.8cat = list(enfant.strat.5mat.struct,enfant.strat.5mat.struct,ad
 bidon = matrix(TRUE,1,1)
 imat1.8cat = list(bidon,bidon,bidon,bidon,bidon,bidon,bidon,bidon,bidon)
 
+## Analyse pour les 4 régions du Canada : ( matrices avec denominateurs populationnels)
+
+### Construction des structures :
+
+# Methode utilisée pour la construction :
+
+#vec=c("denom_trav_sante","denom_trav_ventserv","denom_trav_autre","denom_ecol_gard","denom_ecol_prim","denom_ecol_second","denom_ecol_postsec","denom_ecol_indeterm","denom_tcom","denom_lois","denom_autr")
+
+#any(dat.Ost[c(between(x = dat.Ost$age,left = 76,right = 100)),"menage_avec017"])
+
+#for (element in vec){
+#  print(c(any(dat.Ost[c(between(x = dat.Ost$age,left = 76,right = 100)),element]),element))
+#}
+
+
+#######       Analyse pour la région du Québec : ########
+
+
+# On a 8 catégories d'âge et 13 lieux : (en ordre)
+
+# maison : ménage avec 0-17 ans, ménage sans 0-17 ans
+# travail : santé, vente&service, autres
+# école : préscolaire,  primaire, secondaire,  post-secondaire, indéterminé
+# transport, loisirs, autres
+
+# Explication des notation :
+# enfant : [0,11]
+# ado : [12,17]
+# jeune adulte : [18:25]
+# adulte : [26:65]
+# retraite : [66:75]
+# retraite seniors : [76:100]
+
+# Construction de l'objet imat.13mat.8cat.Qc :
+
+nn=8
+
+enfant.struct.Qc = matrix(c(T,F,F,F,F,T,T,F,F,F,T,T,T),1,13,byrow=T)
+
+ado.struct.Qc = matrix(c(T,F,F,T,T,F,T,T,T,F,T,T,T),1,13,byrow=T)
+
+jeune.adulte.struct.Qc = matrix(c(T,T,T,T,T,T,F,T,T,T,T,T,T),1,13,byrow=T)
+
+adulte.struct.Qc = matrix(c(T,T,T,T,T,T,T,T,T,T,T,T,T),1,13,byrow=T)
+
+retraite.struct.Qc = matrix(c(T,T,T,T,T,F,F,F,F,T,T,T,T),1,13,byrow=T)
+
+retraite.seniors.struct.Qc = matrix(c(F,T,F,F,T,F,F,F,F,F,T,T,T),1,13,byrow=T)
+
+concensus.struct.Qc = matrix(c(T,T,T,T,T,T,T,T,T,T,T,T,T),1,13,byrow=T)
+
+imat.13mat.8cat.Qc = list(enfant.struct.Qc,enfant.struct.Qc,ado.struct.Qc,jeune.adulte.struct.Qc,adulte.struct.Qc,adulte.struct.Qc,retraite.struct.Qc,retraite.seniors.struct.Qc,concensus.struct.Qc)
+
+# Construction de l'objet iprem.13mat.8cat et idern.13mat.8cat:
+
+iprem.13mat.8cat.Qc = c(4,1,4,3,3,1,1,3,3,4,1,1,1)
+
+idern.13mat.8cat.Qc = c(8,7,7,7,8,6,6,6,6,7,8,8,8)
+
+ipremy.13mat.8cat.Qc = matrix(iprem.13mat.8cat.Qc,1,length(iprem.13mat.8cat.Qc))
+iderny.13mat.8cat.Qc = matrix(idern.13mat.8cat.Qc,1,length(idern.13mat.8cat.Qc))
+
+#Construction de l'objet iniv.13mat.8cat
+iniv.13mat.8cat.Qc = cumsum(c(0,(idern.13mat.8cat.Qc-iprem.13mat.8cat.Qc+1)[-length(iprem.13mat.8cat.Qc)])*nn)
+
+
+# Construction des structures pour les matrices avec denominateurs populationnel totale symétrique:
+
+## Matrice symétrique totale maison :
+
+nn=8
+
+enfant.struct.maison.Qc = matrix(c(F,T),1,2,byrow=T)
+
+ado.struct.maison.Qc = matrix(c(F,T),1,2,byrow=T)
+
+jeune.adulte.struct.maison.Qc = matrix(c(T,T),1,2,byrow=T)
+
+adulte.struct.maison.Qc = matrix(c(T,T),1,2,byrow=T)
+
+retraite.struct.maison.Qc = matrix(c(T,T),1,2,byrow=T)
+
+retraite.seniors.struct.maison.Qc = matrix(c(T,F),1,2,byrow=T)
+
+concensus.struct.maison.Qc = matrix(c(T,T),1,2,byrow=T)
+
+imat.mat.maison.8cat.Qc = list(enfant.struct.maison.Qc,enfant.struct.maison.Qc,ado.struct.maison.Qc,jeune.adulte.struct.maison.Qc,adulte.struct.maison.Qc,adulte.struct.maison.Qc,retraite.struct.maison.Qc,retraite.seniors.struct.maison.Qc,concensus.struct.maison.Qc)
+
+
+# Construction de l'objet iprem.mat.maison.8cat.Qc et idern.mat.maison.8cat.Qc:
+
+iprem.mat.maison.8cat.Qc = c(4,1)
+
+idern.mat.maison.8cat.Qc = c(8,7)
+
+ipremy.mat.maison.8cat.Qc = matrix(iprem.mat.maison.8cat.Qc,1,length(iprem.mat.maison.8cat.Qc))
+iderny.mat.maison.8cat.Qc = matrix(idern.mat.maison.8cat.Qc,1,length(idern.mat.maison.8cat.Qc))
+
+#Construction de l'objet iniv.mat.maison.8cat.Qc
+
+iniv.mat.maison.8cat.Qc = cumsum(c(0,(idern.mat.maison.8cat.Qc-iprem.mat.maison.8cat.Qc+1)[-length(iprem.mat.maison.8cat.Qc)])*nn)
+
+
+## Matrice symétrique totale ecole : (matrice 6x6, on n'inclut pas retraité et retraité séniors)
+
+nn=6
+
+enfant.struct.ecole.Qc = matrix(c(T,T,F,F,F),1,5,byrow=T)
+
+ado.struct.ecole.Qc = matrix(c(F,T,T,T,F),1,5,byrow=T)
+
+jeune.adulte.struct.ecole.Qc = matrix(c(T,F,T,T,T),1,5,byrow=T)
+
+adulte.struct.ecole.Qc = matrix(c(T,T,T,T,T),1,5,byrow=T)
+
+retraite.struct.ecole.Qc = matrix(c(F,F,F,F,T),1,5,byrow=T)
+
+retraite.seniors.struct.ecole.Qc = matrix(c(F,F,F,F,F),1,5,byrow=T)
+
+concensus.struct.ecole.Qc = matrix(c(T,T,T,T,T),1,5,byrow=T)
+
+imat.mat.ecole.Qc.6cat.Qc = list(enfant.struct.ecole.Qc,enfant.struct.ecole.Qc,ado.struct.ecole.Qc,jeune.adulte.struct.ecole.Qc,adulte.struct.ecole.Qc,adulte.struct.ecole.Qc,concensus.struct.ecole.Qc)
+
+# Construction de l'objet iprem.mat.ecole.6cat.Qc et idern.mat.ecole.6cat.Qc:
+
+iprem.mat.ecole.6cat.Qc = c(1,1,3,3,4)
+
+idern.mat.ecole.6cat.Qc = c(6,6,6,6,6)
+
+ipremy.mat.ecole.6cat.Qc = matrix(iprem.mat.ecole.6cat.Qc,1,length(iprem.mat.ecole.6cat.Qc))
+iderny.mat.ecole.6cat.Qc = matrix(idern.mat.ecole.6cat.Qc,1,length(idern.mat.ecole.6cat.Qc))
+
+#Construction de l'objet iniv.mat.ecole.6cat.Qc
+
+iniv.mat.ecole.6cat.Qc = cumsum(c(0,(idern.mat.ecole.6cat.Qc-iprem.mat.ecole.6cat.Qc+1)[-length(iprem.mat.ecole.6cat.Qc)])*nn)
+
+
+
+#######       Analyse pour la région Atlantic : ########
+
+dat.Atc = indivR.dat[indivR.dat$regioncp==1&!is.na(indivR.dat$nbconRtot20_tous),]
+dim(dat.Atc)
+
+# On a 8 catégories d'âge et 13 lieux : (en ordre)
+
+# maison : ménage sans 0-17 ans, ménage avec 0-17 ans
+# travail : santé, vente&service, autres
+# école : garderie,  primaire, secondaire,  post-secondaire, indéterminé
+# transport, loisirs, autres
+
+# Explication des notation :
+# petit enfant : [0:5]
+# enfant : [6,11]
+# ado : [12,17]
+# jeune adulte : [18:25]
+# adulte : [26:65]
+# retraite : [66:75]
+# retraite seniors : [76:100]
+
+nn=8
+
+petit.enfant.struct.Atc = matrix(c(F,T,F,F,F,T,T,F,F,F,T,T,T),1,13,byrow=T)
+
+enfant.struct.Atc = matrix(c(F,T,F,F,F,F,T,F,F,T,T,T,T),1,13,byrow=T)
+
+ado.struct.Atc = matrix(c(F,T,F,T,T,F,F,T,F,T,T,T,T),1,13,byrow=T)
+
+jeune.adulte.struct.Atc = matrix(c(T,T,T,T,T,T,T,T,T,F,T,T,T),1,13,byrow=T)
+
+adulte.struct.Atc = matrix(c(T,T,T,T,T,T,T,T,T,T,T,T,T),1,13,byrow=T)
+
+retraite.struct.Atc = matrix(c(T,T,T,T,T,T,F,F,T,T,T,T,T),1,13,byrow=T)
+
+retraite.seniors.struct.Atc = matrix(c(T,F,T,F,T,F,F,F,F,T,T,T,T),1,13,byrow=T)
+
+concensus.struct = matrix(c(T,T,T,T,T,T,T,T,T,T,T,T,T),1,13,byrow=T)
+
+imat.13mat.8cat.Atc = list(petit.enfant.struct.Atc,enfant.struct.Atc,ado.struct.Atc,jeune.adulte.struct.Atc,adulte.struct.Atc,adulte.struct.Atc,retraite.struct.Atc,retraite.seniors.struct.Atc,concensus.struct)
+
+# Construction de l'objet iprem.13mat.8cat et idern.13mat.8cat.Atc:
+
+iprem.13mat.8cat.Atc = c(4,1,4,3,3,1,1,3,4,2,1,1,1)
+
+idern.13mat.8cat.Atc = c(8,7,8,7,8,7,6,6,7,8,8,8,8)
+
+ipremy.13mat.8cat.Atc = matrix(iprem.13mat.8cat.Atc,1,length(iprem.13mat.8cat.Atc))
+iderny.13mat.8cat.Atc = matrix(idern.13mat.8cat.Atc,1,length(idern.13mat.8cat.Atc))
+
+#Construction de l'objet iniv.13mat.8cat
+iniv.13mat.8cat.Atc = cumsum(c(0,(idern.13mat.8cat.Atc-iprem.13mat.8cat.Atc+1)[-length(iprem.13mat.8cat.Atc)])*nn)
+
+
+#######       Analyse pour la région d'Ontario : ########
+
+nn=8
+
+dat.Ont = indivR.dat[indivR.dat$regioncp==3&!is.na(indivR.dat$nbconRtot20_tous),]
+dim(dat.Ont)
+
+# On a 8 catégories d'âge et 13 lieux : (en ordre)
+
+# maison : ménage sans 0-17 ans, ménage avec 0-17 ans
+# travail : santé, vente&service, autres
+# école : garderie,  primaire, secondaire,  post-secondaire, indéterminé
+# transport, loisirs, autres
+
+# Explication des notation :
+# petit enfant : [0:5]
+# enfant : [6,11]
+# ado : [12,17]
+# jeune adulte : [18:25]
+# adulte : [26:65]
+# retraite : [66:75]
+# retraite seniors : [76:100]
+
+
+petit.enfant.struct.Ont = matrix(c(F,T,F,F,F,T,T,F,F,T,T,T,T),1,13,byrow=T)
+
+enfant.struct.Ont = matrix(c(F,T,F,F,F,T,T,F,F,F,T,T,T),1,13,byrow=T)
+
+ado.struct.Ont = matrix(c(F,T,T,T,T,T,F,T,T,T,T,T,T),1,13,byrow=T)
+
+jeune.adulte.struct.Ont = matrix(c(T,T,T,T,T,T,T,T,T,F,T,T,T),1,13,byrow=T)
+
+adulte.struct.Ont = matrix(c(T,T,T,T,T,T,T,T,T,T,T,T,T),1,13,byrow=T)
+
+retraite.struct.Ont = matrix(c(T,T,T,F,T,F,T,F,T,T,T,T,T),1,13,byrow=T)
+
+retraite.seniors.struct.Ont = matrix(c(T,T,F,T,T,F,T,T,F,T,T,T,T),1,13,byrow=T)
+
+concensus.struct = matrix(c(T,T,T,T,T,T,T,T,T,T,T,T,T),1,13,byrow=T)
+
+imat.13mat.8cat.Ont = list(petit.enfant.struct.Ont,enfant.struct.Ont,ado.struct.Ont,jeune.adulte.struct.Ont,adulte.struct.Ont,adulte.struct.Ont,retraite.struct.Ont,retraite.seniors.struct.Ont,concensus.struct)
+
+# Construction de l'objet iprem.13mat.8cat.Ont et idern.13mat.8cat.Ont:
+
+iprem.13mat.8cat.Ont = c(4,1,3,3,3,1,1,3,3,1,1,1,1)
+
+idern.13mat.8cat.Ont = c(8,8,7,8,8,6,8,8,7,8,8,8,8)
+
+ipremy.13mat.8cat.Ont = matrix(iprem.13mat.8cat.Ont,1,length(iprem.13mat.8cat.Ont))
+iderny.13mat.8cat.Ont = matrix(idern.13mat.8cat.Ont,1,length(idern.13mat.8cat.Ont))
+
+#Construction de l'objet iniv.13mat.8cat.Ont
+iniv.13mat.8cat.Ont = cumsum(c(0,(idern.13mat.8cat.Ont-iprem.13mat.8cat.Ont+1)[-length(iprem.13mat.8cat.Ont)])*nn)
+
+
+
+#######       Analyse pour la région Ouest : ########
+
+
+dat.Ost = indivR.dat[indivR.dat$regioncp==4&!is.na(indivR.dat$nbconRtot20_tous),]
+dim(dat.Ost)
+
+# Construction des structures :
+
+# On a 8 catégories d'âge et 13 lieux : (en ordre)
+
+# maison : ménage sans 0-17 ans, ménage avec 0-17 ans
+# travail : santé, vente&service, autres
+# école : garderie,  primaire, secondaire,  post-secondaire, indéterminé
+# transport, loisirs, autres
+
+# Explication des notation :
+# petit enfant : [0:5]
+# enfant : [6,11]
+# ado : [12,17]
+# jeune adulte : [18:25]
+# adulte : [26:65]
+# retraite : [66:75]
+# retraite seniors : [76:100]
+
+nn=8
+
+petit.enfant.struct.Ost = matrix(c(F,T, F,F,F, T,F,F,F,T, T,T,T),1,13,byrow=T)
+
+enfant.struct.Ost = matrix(c(F,T, F,F,F, T,T,F,F,F, T,T,T),1,13,byrow=T)
+
+ado.struct.Ost = matrix(c(F,T, F,T,F, F,T,T,T,T, T,T,T),1,13,byrow=T)
+
+jeune.adulte.struct.Ost = matrix(c(T,T, T,T,T, T,T,T,T,F, T,T,T),1,13,byrow=T)
+
+adulte.struct.Ost = matrix(c(T,T,T,T,T,T,T,T,T,T,T,T,T),1,13,byrow=T)
+
+retraite.struct.Ost = matrix(c(T,T, F,T,T, T,F,F,F,T, T,T,T),1,13,byrow=T)
+
+retraite.seniors.struct.Ost = matrix(c(T,T, F,F,T, F,F,F,F,T, T,T,T),1,13,byrow=T)
+
+concensus.struct = matrix(c(T,T,T,T,T,T,T,T,T,T,T,T,T),1,13,byrow=T)
+
+imat.13mat.8cat.Ost = list(petit.enfant.struct.Ost,enfant.struct.Ost,ado.struct.Ost,jeune.adulte.struct.Ost,adulte.struct.Ost,adulte.struct.Ost,retraite.struct.Ost,retraite.seniors.struct.Ost,concensus.struct)
+
+# Construction de l'objet iprem.13mat.8cat.Ost et idern.13mat.8cat.Ost:
+
+iprem.13mat.8cat.Ost = c(4,1,4,3,4,1,2,3,3,1,1,1,1)
+
+idern.13mat.8cat.Ost = c(8,8,6,7,8,7,6,6,6,8,8,8,8)
+
+ipremy.13mat.8cat.Ost = matrix(iprem.13mat.8cat.Ost,1,length(iprem.13mat.8cat.Ost))
+iderny.13mat.8cat.Ost = matrix(idern.13mat.8cat.Ost,1,length(idern.13mat.8cat.Ost))
+
+#Construction de l'objet iniv.13mat.8cat.Ost
+iniv.13mat.8cat.Ost = cumsum(c(0,(idern.13mat.8cat.Ost-iprem.13mat.8cat.Ost+1)[-length(iprem.13mat.8cat.Ost)])*nn)
+
+
+#######       Analyse pour tout le Canada : ########
+
+# Construction des objets iprem et idern pour le Canada
+
+nn=8
+
+iprem.13mat.8cat.matrice.Can = matrix(data =c(iprem.13mat.8cat.Qc,iprem.13mat.8cat.Atc,iprem.13mat.8cat.Ont,iprem.13mat.8cat.Ost),nrow = 4,byrow = T )
+
+idern.13mat.8cat.matrice.Can = matrix(data =c(idern.13mat.8cat.Qc,idern.13mat.8cat.Atc,idern.13mat.8cat.Ont,idern.13mat.8cat.Ost),nrow = 4,byrow = T )
+
+iprem.13mat.8cat.Can = apply(X =iprem.13mat.8cat.matrice.Can,MARGIN = 2,FUN = min )
+
+idern.13mat.8cat.Can = apply(X =idern.13mat.8cat.matrice.Can,MARGIN = 2,FUN = max )
+
+ipremy.13mat.8cat.Can = matrix(iprem.13mat.8cat.Can,1,length(iprem.13mat.8cat.Can))
+iderny.13mat.8cat.Can = matrix(idern.13mat.8cat.Can,1,length(idern.13mat.8cat.Can))
+
+iniv.13mat.8cat.Can = cumsum(c(0,(idern.13mat.8cat.Can-iprem.13mat.8cat.Can+1)[-length(iprem.13mat.8cat.Can)])*nn)
+
+np.8cat.13mat.Can = sum((idern.13mat.8cat.Can-iprem.13mat.8cat.Can+1)*nn)
