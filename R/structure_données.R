@@ -145,6 +145,7 @@ imat1.8cat = list(bidon,bidon,bidon,bidon,bidon,bidon,bidon,bidon,bidon)
 
 # Construction de l'objet imat.13mat.8cat.Qc :
 
+
 nn=8
 
 enfant.struct.Qc = matrix(c(T,F,F,F,F,T,T,F,F,F,T,T,T),1,13,byrow=T)
@@ -250,8 +251,6 @@ iniv.mat.ecole.6cat.Qc = cumsum(c(0,(idern.mat.ecole.6cat.Qc-iprem.mat.ecole.6ca
 
 #######       Analyse pour la région Atlantic : ########
 
-dat.Atc = indivR.dat[indivR.dat$regioncp==1&!is.na(indivR.dat$nbconRtot20_tous),]
-dim(dat.Atc)
 
 # On a 8 catégories d'âge et 13 lieux : (en ordre)
 
@@ -306,8 +305,7 @@ iniv.13mat.8cat.Atc = cumsum(c(0,(idern.13mat.8cat.Atc-iprem.13mat.8cat.Atc+1)[-
 
 nn=8
 
-dat.Ont = indivR.dat[indivR.dat$regioncp==3&!is.na(indivR.dat$nbconRtot20_tous),]
-dim(dat.Ont)
+
 
 # On a 8 catégories d'âge et 13 lieux : (en ordre)
 
@@ -360,9 +358,6 @@ iniv.13mat.8cat.Ont = cumsum(c(0,(idern.13mat.8cat.Ont-iprem.13mat.8cat.Ont+1)[-
 
 #######       Analyse pour la région Ouest : ########
 
-
-dat.Ost = indivR.dat[indivR.dat$regioncp==4&!is.na(indivR.dat$nbconRtot20_tous),]
-dim(dat.Ost)
 
 # Construction des structures :
 
