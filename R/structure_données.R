@@ -424,9 +424,6 @@ iprem.13mat.8cat.Can = apply(X =iprem.13mat.8cat.matrice.Can,MARGIN = 2,FUN = mi
 
 idern.13mat.8cat.Can = apply(X =idern.13mat.8cat.matrice.Can,MARGIN = 2,FUN = max )
 
-ipremy.13mat.8cat.Can = matrix(iprem.13mat.8cat.Can,1,length(iprem.13mat.8cat.Can))
-iderny.13mat.8cat.Can = matrix(idern.13mat.8cat.Can,1,length(idern.13mat.8cat.Can))
-
 iniv.13mat.8cat.Can = cumsum(c(0,(idern.13mat.8cat.Can-iprem.13mat.8cat.Can+1)[-length(iprem.13mat.8cat.Can)])*nn)
 
 np.8cat.13mat.Can = sum((idern.13mat.8cat.Can-iprem.13mat.8cat.Can+1)*nn)
