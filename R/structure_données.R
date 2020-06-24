@@ -1,4 +1,4 @@
-# Création des objets décrivant la structure des données
+# # Création des objets décrivant la structure des données
 
 # Matrices à 10 tranches d'âge
 #nn=10
@@ -84,7 +84,7 @@ concensus.strat.5mat.struct = adulte.strat.5mat.struct
 
 
 # Note: le dernier élément de imat ne sert pas. Les contraintes sur les matrices applicables au dernier groupe
-# doivent Ãªtre imposées dans idern
+# doivent être imposées dans idern
 
 # Matrices à 10 tranches d'âge
 # Sans limite supérieure
@@ -116,21 +116,13 @@ imat1.8cat = list(bidon,bidon,bidon,bidon,bidon,bidon,bidon,bidon,bidon)
 
 # Methode utilisée pour la construction :
 
-#vec=c("denom_trav_sante","denom_trav_ventserv","denom_trav_autre","denom_ecol_gard","denom_ecol_prim","denom_ecol_second","denom_ecol_postsec","denom_ecol_indeterm","denom_tcom","denom_lois","denom_autr")
-
-#any(dat.Ost[c(between(x = dat.Ost$age,left = 76,right = 100)),"menage_avec017"])
-
-#for (element in vec){
-#  print(c(any(dat.Ost[c(between(x = dat.Ost$age,left = 76,right = 100)),element]),element))
-#}
-
 
 #######       Analyse pour la région du Québec : ########
 
 
 # On a 8 catégories d'âge et 13 lieux : (en ordre)
 
-# maison : ménage avec 0-17 ans, ménage sans 0-17 ans
+# maison : ménage sans 0-17 ans, ménage avec 0-17 ans
 # travail : santé, vente&service, autres
 # école : préscolaire,  primaire, secondaire,  post-secondaire, indéterminé
 # transport, loisirs, autres
@@ -145,20 +137,19 @@ imat1.8cat = list(bidon,bidon,bidon,bidon,bidon,bidon,bidon,bidon,bidon)
 
 # Construction de l'objet imat.13mat.8cat.Qc :
 
-
 nn=8
 
-enfant.struct.Qc = matrix(c(T,F,F,F,F,T,T,F,F,F,T,T,T),1,13,byrow=T)
+enfant.struct.Qc = matrix(c(F,T, F,F,F, T,T,F,F,F, T,T,T),1,13,byrow=T)
 
-ado.struct.Qc = matrix(c(T,F,F,T,T,F,T,T,T,F,T,T,T),1,13,byrow=T)
+ado.struct.Qc = matrix(c(F,T, F,T,T, F,T,T,T,F, T,T,T),1,13,byrow=T)
 
-jeune.adulte.struct.Qc = matrix(c(T,T,T,T,T,T,F,T,T,T,T,T,T),1,13,byrow=T)
+jeune.adulte.struct.Qc = matrix(c(T,T, T,T,T, T,F,T,T,T, T,T,T),1,13,byrow=T)
 
 adulte.struct.Qc = matrix(c(T,T,T,T,T,T,T,T,T,T,T,T,T),1,13,byrow=T)
 
-retraite.struct.Qc = matrix(c(T,T,T,T,T,F,F,F,F,T,T,T,T),1,13,byrow=T)
+retraite.struct.Qc = matrix(c(T,T, T,T,T, F,F,F,F,T, T,T,T),1,13,byrow=T)
 
-retraite.seniors.struct.Qc = matrix(c(F,T,F,F,T,F,F,F,F,F,T,T,T),1,13,byrow=T)
+retraite.seniors.struct.Qc = matrix(c(T,F, F,F,T, F,F,F,F,F, T,T,T),1,13,byrow=T)
 
 concensus.struct.Qc = matrix(c(T,T,T,T,T,T,T,T,T,T,T,T,T),1,13,byrow=T)
 
@@ -175,6 +166,8 @@ iderny.13mat.8cat.Qc = matrix(idern.13mat.8cat.Qc,1,length(idern.13mat.8cat.Qc))
 
 #Construction de l'objet iniv.13mat.8cat
 iniv.13mat.8cat.Qc = cumsum(c(0,(idern.13mat.8cat.Qc-iprem.13mat.8cat.Qc+1)[-length(iprem.13mat.8cat.Qc)])*nn)
+
+np.8cat.13mat.Qc = sum((idern.13mat.8cat.Qc-iprem.13mat.8cat.Qc+1)*nn)
 
 
 # Construction des structures pour les matrices avec denominateurs populationnel totale symétrique:
@@ -268,11 +261,12 @@ iniv.mat.ecole.6cat.Qc = cumsum(c(0,(idern.mat.ecole.6cat.Qc-iprem.mat.ecole.6ca
 # retraite : [66:75]
 # retraite seniors : [76:100]
 
+
 nn=8
 
-petit.enfant.struct.Atc = matrix(c(F,T,F,F,F,T,T,F,F,F,T,T,T),1,13,byrow=T)
+petit.enfant.struct.Atc = matrix(c(F,T, F,F,F, T,T,F,F,F, T,T,T),1,13,byrow=T)
 
-enfant.struct.Atc = matrix(c(F,T,F,F,F,F,T,F,F,T,T,T,T),1,13,byrow=T)
+enfant.struct.Atc = matrix(c(F,T, F,F,F, F,T,F,F,T, T,T,T),1,13,byrow=T)
 
 ado.struct.Atc = matrix(c(F,T,F,T,T,F,F,T,F,T,T,T,T),1,13,byrow=T)
 
@@ -300,11 +294,11 @@ iderny.13mat.8cat.Atc = matrix(idern.13mat.8cat.Atc,1,length(idern.13mat.8cat.At
 #Construction de l'objet iniv.13mat.8cat
 iniv.13mat.8cat.Atc = cumsum(c(0,(idern.13mat.8cat.Atc-iprem.13mat.8cat.Atc+1)[-length(iprem.13mat.8cat.Atc)])*nn)
 
+np.8cat.13mat.Atc = sum((idern.13mat.8cat.Atc-iprem.13mat.8cat.Atc+1)*nn)
 
 #######       Analyse pour la région d'Ontario : ########
 
 nn=8
-
 
 
 # On a 8 catégories d'âge et 13 lieux : (en ordre)
@@ -328,7 +322,7 @@ petit.enfant.struct.Ont = matrix(c(F,T,F,F,F,T,T,F,F,T,T,T,T),1,13,byrow=T)
 
 enfant.struct.Ont = matrix(c(F,T,F,F,F,T,T,F,F,F,T,T,T),1,13,byrow=T)
 
-ado.struct.Ont = matrix(c(F,T,T,T,T,T,F,T,T,T,T,T,T),1,13,byrow=T)
+ado.struct.Ont = matrix(c(F,T, F,T,T,T,F,T,T,T,T,T,T),1,13,byrow=T)
 
 jeune.adulte.struct.Ont = matrix(c(T,T,T,T,T,T,T,T,T,F,T,T,T),1,13,byrow=T)
 
@@ -344,7 +338,7 @@ imat.13mat.8cat.Ont = list(petit.enfant.struct.Ont,enfant.struct.Ont,ado.struct.
 
 # Construction de l'objet iprem.13mat.8cat.Ont et idern.13mat.8cat.Ont:
 
-iprem.13mat.8cat.Ont = c(4,1,3,3,3,1,1,3,3,1,1,1,1)
+iprem.13mat.8cat.Ont = c(4,1,4,3,3,1,1,3,3,1,1,1,1)
 
 idern.13mat.8cat.Ont = c(8,8,7,8,8,6,8,8,7,8,8,8,8)
 
@@ -354,7 +348,7 @@ iderny.13mat.8cat.Ont = matrix(idern.13mat.8cat.Ont,1,length(idern.13mat.8cat.On
 #Construction de l'objet iniv.13mat.8cat.Ont
 iniv.13mat.8cat.Ont = cumsum(c(0,(idern.13mat.8cat.Ont-iprem.13mat.8cat.Ont+1)[-length(iprem.13mat.8cat.Ont)])*nn)
 
-
+np.8cat.13mat.Ont = sum((idern.13mat.8cat.Ont-iprem.13mat.8cat.Ont+1)*nn)
 
 #######       Analyse pour la région Ouest : ########
 
@@ -409,6 +403,7 @@ iderny.13mat.8cat.Ost = matrix(idern.13mat.8cat.Ost,1,length(idern.13mat.8cat.Os
 #Construction de l'objet iniv.13mat.8cat.Ost
 iniv.13mat.8cat.Ost = cumsum(c(0,(idern.13mat.8cat.Ost-iprem.13mat.8cat.Ost+1)[-length(iprem.13mat.8cat.Ost)])*nn)
 
+np.8cat.13mat.Ost = sum((idern.13mat.8cat.Ost-iprem.13mat.8cat.Ost+1)*nn)
 
 #######       Analyse pour tout le Canada : ########
 
@@ -427,3 +422,29 @@ idern.13mat.8cat.Can = apply(X =idern.13mat.8cat.matrice.Can,MARGIN = 2,FUN = ma
 iniv.13mat.8cat.Can = cumsum(c(0,(idern.13mat.8cat.Can-iprem.13mat.8cat.Can+1)[-length(iprem.13mat.8cat.Can)])*nn)
 
 np.8cat.13mat.Can = sum((idern.13mat.8cat.Can-iprem.13mat.8cat.Can+1)*nn)
+
+# Construction de l'objet imat.13.8cat.Can :
+
+# Methode utilisée pour la construction :
+
+#vec=c("denom_trav_sante","denom_trav_ventserv","denom_trav_autre","denom_ecol_gard","denom_ecol_prim","denom_ecol_second","denom_ecol_postsec","denom_ecol_indeterm","denom_tcom","denom_lois","denom_autr")
+
+#any(dat.Can[c(between(x = dat.Can$age,left = 76,right =100)),"menage_avec017"])
+
+#for (element in vec){
+#  print(c(any(dat.Can[c(between(x = dat.Can$age,left = 76,right = 100)),element]),element))
+#}
+
+enfant.struct.Can = matrix(c(F,T, F,F,F, T,T,F,F,T, T,T,T),1,13,byrow=T)
+
+ado.struct.Can = matrix(c(F,T, F,T,T, F,T,T,T,T, T,T,T),1,13,byrow=T)
+
+adulte.struct.Can = matrix(c(T,T,T,T,T,T,T,T,T,T,T,T,T),1,13,byrow=T)
+
+retraite.struct.Can = matrix(c(T,T, T,T,T, T,T,F,T,T, T,T,T),1,13,byrow=T)
+
+retraite.seniors.struct.Can = matrix(c(T,T, T,T,T, F,T,T,F,T, T,T,T),1,13,byrow=T)
+
+concensus.struct = matrix(c(T,T,T,T,T,T,T,T,T,T,T,T,T),1,13,byrow=T)
+
+imat.13mat.8cat.Can = list(enfant.struct.Can,enfant.struct.Can,ado.struct.Can,adulte.struct.Can,adulte.struct.Can,adulte.struct.Can,retraite.struct.Can,retraite.seniors.struct.Can,concensus.struct)
