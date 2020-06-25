@@ -46,6 +46,7 @@ fit.matrices = function(dat,wi,X,duration,count.names,agecut,iprem,idern,ipremy,
 	{
 		wj = wtt = wte = wt
 		wj[is.na(wj)] = 0
+		vd = numeric(0)
 	}
 	else
 	{
@@ -164,6 +165,7 @@ fit.rates.matrices = function(dat,wi,X,duration,count.names,agecut,iprem,idern,i
 		nj = n.par.age
 		wj[is.na(wj)] = 0
 		nj[is.na(nj)] = 0
+		vd = numeric(0)
 	}
 	else
 	{
