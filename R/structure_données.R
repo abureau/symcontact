@@ -1,4 +1,4 @@
-# # Création des objets décrivant la structure des données
+# Création des objets décrivant la structure des données
 
 # Matrices à 10 tranches d'âge
 #nn=10
@@ -136,6 +136,16 @@ imat1.8cat = list(bidon,bidon,bidon,bidon,bidon,bidon,bidon,bidon,bidon)
 # retraite seniors : [76:100]
 
 # Construction de l'objet imat.13mat.8cat.Qc :
+
+# Methode utilisée pour la construction :
+
+#vec=c("denom_trav_sante","denom_trav_ventserv","denom_trav_autre","denom_ecol_gard","denom_ecol_prim","denom_ecol_second","denom_ecol_postsec","denom_ecol_indeterm","denom_tcom","denom_lois","denom_autr")
+
+#any(dat.Can[c(between(x = dat.Can$age,left = 76,right =100)),"menage_avec017"])
+
+#for (element in vec){
+#  print(c(any(dat.Can[c(between(x = dat.Can$age,left = 76,right = 100)),element]),element))
+#}
 
 nn=8
 
@@ -423,28 +433,24 @@ iniv.13mat.8cat.Can = cumsum(c(0,(idern.13mat.8cat.Can-iprem.13mat.8cat.Can+1)[-
 
 np.8cat.13mat.Can = sum((idern.13mat.8cat.Can-iprem.13mat.8cat.Can+1)*nn)
 
-# Construction de l'objet imat.13.8cat.Can :
 
-# Methode utilisée pour la construction :
+# Construction de l'objet imat.13.8cat.Can pour le Canada :
 
-#vec=c("denom_trav_sante","denom_trav_ventserv","denom_trav_autre","denom_ecol_gard","denom_ecol_prim","denom_ecol_second","denom_ecol_postsec","denom_ecol_indeterm","denom_tcom","denom_lois","denom_autr")
 
-#any(dat.Can[c(between(x = dat.Can$age,left = 76,right =100)),"menage_avec017"])
+petit.enfant.struct.Can = rbind(enfant.struct.Qc,petit.enfant.struct.Atc,petit.enfant.struct.Ont,petit.enfant.struct.Ost)
 
-#for (element in vec){
-#  print(c(any(dat.Can[c(between(x = dat.Can$age,left = 76,right = 100)),element]),element))
-#}
+enfant.struct.Can = rbind(enfant.struct.Qc,enfant.struct.Atc,enfant.struct.Ont,enfant.struct.Ost)
 
-enfant.struct.Can = matrix(c(F,T, F,F,F, T,T,F,F,T, T,T,T),1,13,byrow=T)
+ado.struct.Can = rbind (ado.struct.Qc,ado.struct.Atc,ado.struct.Ont,ado.struct.Ost)
 
-ado.struct.Can = matrix(c(F,T, F,T,T, F,T,T,T,T, T,T,T),1,13,byrow=T)
+jeune.adulte.struct.Can = rbind (jeune.adulte.struct.Qc,jeune.adulte.struct.Atc,jeune.adulte.struct.Ont,jeune.adulte.struct.Ost)
 
-adulte.struct.Can = matrix(c(T,T,T,T,T,T,T,T,T,T,T,T,T),1,13,byrow=T)
+adulte.struct.Can = rbind(adulte.struct.Qc,adulte.struct.Atc,adulte.struct.Ont,adulte.struct.Ost)
 
-retraite.struct.Can = matrix(c(T,T, T,T,T, T,T,F,T,T, T,T,T),1,13,byrow=T)
+retraite.struct.Can = rbind (retraite.struct.Qc, retraite.struct.Atc,retraite.struct.Ont,retraite.struct.Ost)
 
-retraite.seniors.struct.Can = matrix(c(T,T, T,T,T, F,T,T,F,T, T,T,T),1,13,byrow=T)
+retraite.seniors.struct.Can = rbind ( retraite.seniors.struct.Qc,retraite.seniors.struct.Atc,retraite.seniors.struct.Ont,retraite.seniors.struct.Ost)
 
-concensus.struct = matrix(c(T,T,T,T,T,T,T,T,T,T,T,T,T),1,13,byrow=T)
+concensus.struct.Can = matrix(rep(T,13),nrow = 4,ncol = 13)
 
-imat.13mat.8cat.Can = list(enfant.struct.Can,enfant.struct.Can,ado.struct.Can,adulte.struct.Can,adulte.struct.Can,adulte.struct.Can,retraite.struct.Can,retraite.seniors.struct.Can,concensus.struct)
+imat.13mat.8cat.Can = list(petit.enfant.struct.Can,enfant.struct.Can,ado.struct.Can,jeune.adulte.struct.Can,adulte.struct.Can,adulte.struct.Can,retraite.struct.Can,retraite.seniors.struct.Can,concensus.struct.Can)
