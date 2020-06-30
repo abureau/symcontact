@@ -74,7 +74,7 @@ fit.matrices = function(dat,wi,X,duration,count.names,agecut,iprem,idern,ipremy,
 		for (v in 1:length(vd))
 		{
 		  # Recul de la dernière rangée pour une matrice
-		  ir = 2^(length(vd)-v)*(1:0)
+		  ir = (length(unique(lieud))-v)*(1:0)
 		  if (missing(var.kid))	
 		    wl[[vd[v]]] = matrix(apply(wj[nrow(nj)-ir,],2,sum),1,nn)
 		  else
@@ -196,7 +196,7 @@ fit.rates.matrices = function(dat,wi,X,duration,count.names,agecut,iprem,idern,i
 		for (v in 1:length(vd))
 		{
 		  # Recul de la dernière rangée pour une matrice
-		  ir = 2^(length(vd)-v)*(1:0)
+		  ir = (length(unique(lieud))-v)*(1:0)
 		  if (missing(var.kid))
 		  {
 			  nl[[vd[v]]] = matrix(apply(nj[nrow(nj)-ir,],2,sum),1,nn)
