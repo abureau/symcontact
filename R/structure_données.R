@@ -415,6 +415,7 @@ iniv.13mat.8cat.Ost = cumsum(c(0,(idern.13mat.8cat.Ost-iprem.13mat.8cat.Ost+1)[-
 
 np.8cat.13mat.Ost = sum((idern.13mat.8cat.Ost-iprem.13mat.8cat.Ost+1)*nn)
 
+
 #######       Analyse pour tout le Canada : ########
 
 # Construction des objets iprem et idern pour le Canada
@@ -454,3 +455,113 @@ retraite.seniors.struct.Can = rbind ( retraite.seniors.struct.Qc,retraite.senior
 concensus.struct.Can = matrix(rep(T,13),nrow = 4,ncol = 13)
 
 imat.13mat.8cat.Can = list(petit.enfant.struct.Can,enfant.struct.Can,ado.struct.Can,jeune.adulte.struct.Can,adulte.struct.Can,adulte.struct.Can,retraite.struct.Can,retraite.seniors.struct.Can,concensus.struct.Can)
+
+
+# Construction des structures pour les matrices avec denominateurs populationnel totale symétrique pour le Canada
+
+## Matrice symétrique totale maison :
+
+
+# Construction des structures :
+
+# On a 8 catégories d'âge et 2 lieux : (en ordre)
+
+# maison : ménage sans 0-17 ans, ménage avec 0-17 ans
+
+# Explication des notation :
+
+# enfant : [0,17]
+
+# adulte : [18:75]
+
+# retraite seniors : [76:100]
+
+nn=8
+
+
+enfant.struct.maison.Can = matrix(rep(c(F,T),4),nrow = 4,ncol = 2,byrow = T)
+
+
+adulte.struct.maison.Can = matrix(rep(T,8),nrow = 4,ncol = 2,byrow = T)
+
+
+retraite.seniors.struct.maison.Can = matrix(data = c(rep(T,4),F,F,T,T),nrow = 4,ncol = 2)
+
+
+concensus.struct.maison.Can = matrix(rep(T,8),nrow = 4,ncol = 2,byrow = T)
+
+
+imat.mat.maison.8cat.Can = list(enfant.struct.maison.Can,enfant.struct.maison.Can,enfant.struct.maison.Can,adulte.struct.maison.Can,adulte.struct.maison.Can,adulte.struct.maison.Can,adulte.struct.maison.Can,retraite.seniors.struct.maison.Can,concensus.struct.maison.Can)
+
+
+# Construction de l'objet iprem.mat.8cat.maison.Can et idern.mat.8cat.maison.Can:
+
+
+iprem.mat.8cat.matrice.maison.Can = matrix(data =c(iprem.13mat.8cat.Qc,iprem.13mat.8cat.Atc,iprem.13mat.8cat.Ont,iprem.13mat.8cat.Ost),nrow = 4,byrow = T )[,c(1,2)]
+
+idern.mat.8cat.matrice.maison.Can = matrix(data =c(idern.13mat.8cat.Qc,idern.13mat.8cat.Atc,idern.13mat.8cat.Ont,idern.13mat.8cat.Ost),nrow = 4,byrow = T )[,c(1,2)]
+
+iprem.mat.8cat.maison.Can = apply(X =iprem.mat.8cat.matrice.maison.Can,MARGIN = 2,FUN = min )
+
+idern.mat.8cat.maison.Can = apply(X =idern.mat.8cat.matrice.maison.Can,MARGIN = 2,FUN = max )
+
+
+#Construction de l'objet iniv.mat.8cat.maison.Can:
+
+iniv.mat.8cat.maison.Can = cumsum(c(0,(idern.mat.8cat.maison.Can-iprem.mat.8cat.maison.Can+1)[-length(iprem.mat.8cat.maison.Can)])*nn)
+
+# Construction de l'objet np.8cat.mat.maison.Can :
+
+np.8cat.mat.maison.Can = sum((idern.mat.8cat.maison.Can-iprem.mat.8cat.maison.Can+1)*nn)
+
+
+## Matrice symétrique totale ecole :
+
+
+# Construction des structures :
+
+# On a 8 catégories d'âge et 5 lieux : (en ordre)
+
+# garderie - primaire - secondaire - post secondaire - indeterminé
+
+
+nn=8
+
+petit.enfant.struct.ecole.Can = petit.enfant.struct.Can[,c(6:10)]
+
+enfant.struct.ecole.Can = enfant.struct.Can[,c(6:10)]
+
+ado.struct.ecole.Can = ado.struct.Can[,c(6:10)]
+
+jeune.adulte.struct.ecole.Can = jeune.adulte.struct.Can[,c(6:10)]
+
+adulte.struct.ecole.Can = adulte.struct.Can[,c(6:10)]
+
+retraite.struct.ecole.Can = retraite.struct.Can[,c(6:10)]
+
+retraite.seniors.struct.ecole.Can = retraite.seniors.struct.Can[,c(6:10)]
+
+concensus.struct.ecole.Can = concensus.struct.Can[,c(6:10)]
+
+imat.mat.ecole.8cat.Can = list(petit.enfant.struct.ecole.Can,enfant.struct.ecole.Can,ado.struct.ecole.Can,jeune.adulte.struct.ecole.Can,adulte.struct.ecole.Can,adulte.struct.ecole.Can,retraite.struct.ecole.Can,retraite.seniors.struct.ecole.Can,concensus.struct.ecole.Can)
+
+
+# Construction de l'objet iprem.mat.8cat.ecole.Can et idern.mat.8cat.ecole.Can:
+
+
+iprem.mat.8cat.matrice.ecole.Can = matrix(data =c(iprem.13mat.8cat.Qc,iprem.13mat.8cat.Atc,iprem.13mat.8cat.Ont,iprem.13mat.8cat.Ost),nrow = 4,byrow = T )[,c(6:10)]
+
+idern.mat.8cat.matrice.ecole.Can = matrix(data =c(idern.13mat.8cat.Qc,idern.13mat.8cat.Atc,idern.13mat.8cat.Ont,idern.13mat.8cat.Ost),nrow = 4,byrow = T )[,c(6:10)]
+
+iprem.mat.8cat.ecole.Can = apply(X =iprem.mat.8cat.matrice.ecole.Can,MARGIN = 2,FUN = min )
+
+idern.mat.8cat.ecole.Can = apply(X =idern.mat.8cat.matrice.ecole.Can,MARGIN = 2,FUN = max )
+
+
+#Construction de l'objet iniv.mat.8cat.ecole.Can:
+
+iniv.mat.8cat.ecole.Can = cumsum(c(0,(idern.mat.8cat.ecole.Can-iprem.mat.8cat.ecole.Can+1)[-length(iprem.mat.8cat.ecole.Can)])*nn)
+
+# Construction de l'objet np.8cat.mat.ecole.Can :
+
+np.8cat.mat.ecole.Can = sum((idern.mat.8cat.ecole.Can-iprem.mat.8cat.ecole.Can+1)*nn)
