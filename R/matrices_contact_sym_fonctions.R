@@ -232,11 +232,16 @@ fit.rates.matrices = function(dat,wi,X,duration,count.names,agecut,iprem,idern,i
 				nvec = c(nvec,rep(n.par.age[j,ipremy[j,k]:iderny[j,k]],rep(nn,iderny[j,k]-ipremy[j,k]+1)))							
 			}			
 		}
-		}
+	}
+	# On garde seulement les combinaisons dont les effectifs sont non-nuls
+	nonnul = nvec>0
+	nvec = nvec[nonnul]
+	y=y[nonnul]
+	w=w[nonnul]
 	# normalisation des poids
 	w = w/nvec
 	
-	# Assignation des objets requis par nlognb et contrc.fonc dans l'environnement parent
+	# Assignation des objets requis par nlognb.rates et contrc.fonc dans l'environnement parent
 	assign("nn",nn,env = parent.frame())
 	assign("y",y,env = parent.frame())
 	assign("w",w,env = parent.frame())
