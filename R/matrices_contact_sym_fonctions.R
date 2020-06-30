@@ -140,7 +140,6 @@ fit.rates.matrices = function(dat,wi,X,duration,count.names,agecut,iprem,idern,i
 	else
 	{
 		if (ncol(X) != (length(theta0)-1)) stop ("Number of columns of X ",ncol(X)," does not equal the length of theta0 minus one",length(theta0)-1)
-		assign("X",X,env = parent.frame())
 		objective = nlognb.rates
 	}
 
@@ -238,6 +237,8 @@ fit.rates.matrices = function(dat,wi,X,duration,count.names,agecut,iprem,idern,i
 	nvec = nvec[nonnul]
 	y=y[nonnul]
 	w=w[nonnul]
+	if (!missing(X)) X=X[nonnul,]
+	assign("X",X,env = parent.frame())
 	# normalisation des poids
 	w = w/nvec
 	
