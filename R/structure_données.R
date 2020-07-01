@@ -169,7 +169,7 @@ imat.13mat.8cat.Qc = list(enfant.struct.Qc,enfant.struct.Qc,ado.struct.Qc,jeune.
 
 iprem.13mat.8cat.Qc = c(4,1,4,3,3,1,1,3,3,4,1,1,1)
 
-idern.13mat.8cat.Qc = c(8,7,7,7,8,6,6,6,6,7,8,8,8)
+idern.13mat.8cat.Qc = c(8,7,7,7,8,6,6,6,6,6,6,8,8)
 
 ipremy.13mat.8cat.Qc = matrix(iprem.13mat.8cat.Qc,1,length(iprem.13mat.8cat.Qc))
 iderny.13mat.8cat.Qc = matrix(idern.13mat.8cat.Qc,1,length(idern.13mat.8cat.Qc))
