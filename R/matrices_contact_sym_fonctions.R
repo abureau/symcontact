@@ -168,13 +168,13 @@ fit.rates.matrices = function(dat,wi,X,duration,count.names,agecut,iprem,idern,i
 	}
 	else
 	{
-	  # Création de la variable catégorielle « lieud » à partir du croisement des niveaux
+	  # Création de la variable catégorielle « lieud » à  partir du croisement des niveaux
 	  # des variables de dénominateurs incluses dans « vd » encodées 0/1 pour la 1re variable, 0/2 pour la 2e, ainsi de suite.
 	  lieud = rep(0,nrow(dat))
 	  for (v in 1:length(vd)) lieud = lieud + unlist(dat[names(vd)[v]])*2^(v-1)
 
 		# Ici on somme les poids par catégorie d'occupation
-		if (missing(var.kid))
+		if (missing(var.kid)) 
 		{
 			wj = tapply(wi*d,list(lieud,cut(dat$age,breaks=agecut)),sum,na.rm=T)
 			nj = tapply(d,list(lieud,cut(dat$age,breaks=agecut)),sum,na.rm=T)
@@ -193,14 +193,13 @@ fit.rates.matrices = function(dat,wi,X,duration,count.names,agecut,iprem,idern,i
 
 		wl = nl = list()
 		cobs = sort(unique(lieud))
+		suite = matrix(nrow =length(vd),ncol =rep(2^(length(vd)-1),1))
 
-		suite = array(dim = c(1,rep(2^(length(vd)-1),1),length(vd)))
-		ind=1
 		for (v in 1:length(vd))
 		{
 		  # Recul de la dernière rangée pour une matrice
-		  suite[,,ind] = rep(seq(0,2^length(vd)-2^v,by=2^v),rep(2^(v-1),2^(length(vd)-v))) + rep((2^(v-1)+1):2^v,2^(length(vd)-v)) - 1
-		  ir = which(cobs%in%suite[,,ind])
+		  suite[v,] = rep(seq(0,2^length(vd)-2^v,by=2^v),rep(2^(v-1),2^(length(vd)-v))) + rep((2^(v-1)+1):2^v,2^(length(vd)-v)) - 1
+		  ir = which(cobs%in%suite[v,])
 		  if (missing(var.kid))
 		  {
 			  nl[[vd[v]]] = matrix(apply(nj[ir,],2,sum),1,nn)
@@ -211,9 +210,7 @@ fit.rates.matrices = function(dat,wi,X,duration,count.names,agecut,iprem,idern,i
 			  nl[[vd[v]]] = rbind(apply(nj[ir,],2,sum),apply(nj[nrow(nj)/2+ir,],2,sum))
 			  wl[[vd[v]]] = rbind(apply(wj[ir,],2,sum),apply(wj[nrow(nj)/2+ir,],2,sum))
 		  }
-		  ind=ind+1
 		}
-		assign("suite",suite,env = parent.frame())
 	}
 
 	# Création du vecteur de comptes y, du vecteur d'effectifs nvec et du vecteur de poids w et du vecteur d'indices de début de chaque matrice iniv
@@ -262,13 +259,29 @@ fit.rates.matrices = function(dat,wi,X,duration,count.names,agecut,iprem,idern,i
 	assign("iprem",iprem,env = parent.frame())
 	assign("idern",idern,env = parent.frame())
 	assign("imat",imat,env = parent.frame())
+
 	# Estimation des matrices
 	obj = ROI:::nlminb2(start=theta0,objective=objective,eqFun=contrc.fonc)
-	if (boot) return(c(obj$par,as.vector(wj)))
+	if (boot) {
+	  if (length(vd)==0){
+	    return(c(obj$par,as.vector(wj)))
+	  }
+	  else{
+	    return(c(obj$par,as.vector(wj),suite))
+	  }
+	 }
 	else
 	{
-		obj$wj = wj
-		return(obj)
+	  if (length(vd)==0){
+	    obj$wj = wj
+	    return(obj)
+	  }
+	  else{
+	    obj$wj = wj
+	    obj$suite =suite
+	    return(obj)
+	  }
+
 	}
 }
 
