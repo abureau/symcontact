@@ -239,8 +239,11 @@ fit.rates.matrices = function(dat,wi,X,duration,count.names,agecut,iprem,idern,i
 	nvec = nvec[nonnul]
 	y=y[nonnul]
 	w=w[nonnul]
-	if (!missing(X)) X=X[nonnul,]
-	assign("X",X,env = parent.frame())
+	if (!missing(X))
+	{
+	  X=X[nonnul,]
+	  assign("X",X,env = parent.frame())
+	}
 	# normalisation des poids
 	w = w/nvec
 	
