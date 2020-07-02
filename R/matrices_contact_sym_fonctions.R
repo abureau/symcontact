@@ -192,19 +192,21 @@ fit.rates.matrices = function(dat,wi,X,duration,count.names,agecut,iprem,idern,i
 		# Poids et effectifs pour les matrices par lieux (on somme les lignes de wj correspondantes)
 
 		wl = nl = list()
+		cobs = sort(unique(lieud))
 		for (v in 1:length(vd))
 		{
 		  # Recul de la dernière rangée pour une matrice
-		  ir = (length(unique(lieud))-v)*(1:0)
+		  suite = rep(seq(0,2^length(vd)-2^v,by=2^v),rep(2^(v-1),2^(length(vd)-v))) + rep((2^(v-1)+1):2^v,2^(length(vd)-v)) - 1
+		  ir = which(cobs%in%suite)
 		  if (missing(var.kid))
 		  {
-			  nl[[vd[v]]] = matrix(apply(nj[nrow(nj)-ir,],2,sum),1,nn)
-			  wl[[vd[v]]] = matrix(apply(wj[nrow(nj)-ir,],2,sum),1,nn)
+			  nl[[vd[v]]] = matrix(apply(nj[ir,],2,sum),1,nn)
+			  wl[[vd[v]]] = matrix(apply(wj[ir,],2,sum),1,nn)
 		  }
 		  else
 		  {
-			  nl[[vd[v]]] = rbind(apply(nj[nrow(nj)/2-ir,],2,sum),apply(nj[nrow(nj)-ir,],2,sum))
-			  wl[[vd[v]]] = rbind(apply(wj[nrow(nj)/2-ir,],2,sum),apply(wj[nrow(nj)-ir,],2,sum))
+			  nl[[vd[v]]] = rbind(apply(nj[ir,],2,sum),apply(nj[nrow(nj)/2+ir,],2,sum))
+			  wl[[vd[v]]] = rbind(apply(wj[ir,],2,sum),apply(wj[nrow(nj)/2+ir,],2,sum))
 		  }
 		}
 	}
