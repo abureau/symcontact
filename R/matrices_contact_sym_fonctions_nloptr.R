@@ -1,9 +1,9 @@
 # Maximisation de la vraisemblance pour matrices de contact par groupe
-# sous contrainte de symÃ©trie de la somme des matrices
+# sous contrainte de symétrie de la somme des matrices
 
 # Fichier des fonctions
 
-fit.matrices = function(dat,wi,X,duration,count.names,agecut,iprem,idern,ipremy,iderny,imat,theta0,iniv,var.kid,var.occup,boot=F)
+fit.matrices = function(dat,wi,X,duration,count.names,agecut,iprem,idern,ipremy,iderny,imat,theta0,iniv,var.kid,vd,boot=F)
   #' @description Fitting contact matrices for multiple locations under the constraint that the matrix of the total of the contacts is symmetrical.
   #' @param dat Matrix containing the contacts counts for all age slices and all locations, in wide format
   #' @param wi Vector of individual weights
@@ -17,7 +17,8 @@ fit.matrices = function(dat,wi,X,duration,count.names,agecut,iprem,idern,ipremy,
   #' @param iderny Matrix of the last age slice for each combination of location and type of household
 #' @param imat List of boolean matrices where each row indicates the contact matrices applicable to a different subset of subjects
 #' @param theta0 Vector of initial parameter values (log counts and dispersion parameters) to be passed to nlminb2
-#' @param iniv Vector of the index preceeding the first parameter of each contact matrix in the vector theta0
+#' @param iniv Vector of the indices preceeding the first parameter of each contact matrix in the vector theta0
+#' @param vd Vector of the indices of the matrices with a specific denominator. The names of this vector must be the boolean variables defining whether a subject is included in the denominator or not
 #' @param boot Boolean indicating whether to return only a vector of statistics. The default is FALSE, which implies the object produced by nlminb2 will be returned
 {
   if (missing(X)) objective = nlognb.counts
@@ -28,6 +29,7 @@ fit.matrices = function(dat,wi,X,duration,count.names,agecut,iprem,idern,ipremy,
     objective = nlognb
   }
 
+  if (!missing(duration)) d = duration else d = rep(1,length(wi))
   nn = length(agecut)-1
 
   if (missing(var.kid))
@@ -40,44 +42,51 @@ fit.matrices = function(dat,wi,X,duration,count.names,agecut,iprem,idern,ipremy,
     tab = t(apply(dat[,count.names],2,function(vec) tapply(vec,list(cut(dat$age,breaks=agecut),dat[,var.kid]),sum,na.rm=T)))
     wt = tapply(wi,list(dat[,var.kid],cut(dat$age,breaks=agecut)),mean,na.rm=T)
   }
-  if (missing(var.occup))
+  if (missing(vd))
   {
     wj = wtt = wte = wt
     wj[is.na(wj)] = 0
+    vd = numeric(0)
   }
   else
   {
-    if (!missing(duration)) d = duration else d = 1
-    # Ici on somme les poids par catÃ©gorie d'occupation
-    if (missing(var.kid)) wj = tapply(d*wi,list(dat[,var.occup],cut(dat$age,breaks=agecut)),sum,na.rm=T)
+    # Création de la variable catégorielle « lieud » à partir du croisement des niveaux
+    # des variables de dénominateurs incluses dans « vd » encodées 0/1 pour la 1re variable, 0/2 pour la 2e, ainsi de suite.
+    lieud = rep(0,nrow(dat))
+    for (v in 1:length(vd)) lieud = lieud + unlist(dat[names(vd)[v]])*2^(v-1)
+
+    # Ici on somme les poids par catégorie d'occupation
+    if (missing(var.kid)) wj = tapply(d*wi,list(lieud,cut(dat$age,breaks=agecut)),sum,na.rm=T)
     else
     {
-      tmp = tapply(d*wi,list(dat[,var.occup],dat[,var.kid],cut(dat$age,breaks=agecut)),sum,na.rm=T)
+      tmp = tapply(d*wi,list(lieud,dat[,var.kid],cut(dat$age,breaks=agecut)),sum,na.rm=T)
       wj = apply(tmp,3,function(mat) stack(data.frame(mat))$values)
     }
-    # Ensuite on divise les poids par les effectifs totaux par tranche d'Ã¢ge
+    # Ensuite on divise les poids par les effectifs totaux par tranche d'âge
     if (!missing(duration)) n.par.age = tapply(duration,cut(dat$age,breaks=agecut),sum,na.rm=T)
     else n.par.age = tapply(wi,cut(dat$age,breaks=agecut),function(vec) sum(!is.na(vec)))
     wj = wj/matrix(rep(n.par.age,nrow(wj)),nrow=nrow(wj),byrow=T)
     wj[is.na(wj)] = 0
 
-    # Poids pour la matrice du travail (on somme les lignes de wj incluant des travailleurs)
-    if (missing(var.kid))
-    {
-      wtt = matrix(apply(wj[c(3,4),],2,sum),1,nn)
-      wte = matrix(apply(wj[c(2,4),],2,sum),1,nn)
-    }
-    else
-    {
-      wtt = rbind(apply(wj[c(3,4),],2,sum),apply(wj[c(7,8),],2,sum))
-      # Poids pour la matrice de l'Ã©cole (on somme les lignes de wj incluant des gens frÃ©quentant l'Ã©cole)
-      wte = rbind(apply(wj[c(2,4),],2,sum),apply(wj[c(6,8),],2,sum))
-    }
-  }
+    # Poids et effectifs pour les matrices par lieux (on somme les lignes de wj correspondantes)
 
-  # CrÃ©ation du vecteur de comptes y, du vecteur de poids w et du vecteur d'indices de dÃ©but de chaque matrice iniv
+    wl = list()
+    indices = list(0)
+
+    for (v in 1:length(vd))
+    {
+      # Recul de la dernière rangée pour une matrice
+      ir = (length(unique(lieud))-v)*(1:0)
+      if (missing(var.kid))
+        wl[[vd[v]]] = matrix(apply(wj[nrow(nj)-ir,],2,sum),1,nn)
+      else
+        wl[[vd[v]]] = rbind(apply(wj[nrow(nj)/2-ir,],2,sum),apply(wj[nrow(nj)-ir,],2,sum))
+    }
+    indices[[v]]=ir
+  }
+  # Création du vecteur de comptes y, du vecteur de poids w et du vecteur d'indices de début de chaque matrice iniv
   y = w = NULL
-  # Boucle sur les types de matrices (5 types)
+  # Boucle sur les types de matrices
   for (k in 1:(nrow(tab)/nn))
   {
     # Boucle sur le statut avec017 (non/oui)
@@ -85,17 +94,11 @@ fit.matrices = function(dat,wi,X,duration,count.names,agecut,iprem,idern,ipremy,
     {
       vec = as.vector(tab[(k-1)*nn+1:nn,(j-1)*nn+ipremy[j,k]:iderny[j,k]])
       y = c(y,vec)
-      # Si c'est la matrice du travail
-      if (k == 2)
-        w = c(w,rep(wtt[j,ipremy[j,k]:iderny[j,k]],rep(nn,iderny[j,k]-ipremy[j,k]+1)))
+      # Si la matrice a un dénominateur spécifique
+      if (k %in% vd)
+        w = c(w,rep(wl[[k]][j,ipremy[j,k]:iderny[j,k]],rep(nn,iderny[j,k]-ipremy[j,k]+1)))
       else
-      {
-        # Si c'est la matrice de l'Ã©cole
-        if (k == 3)
-          w = c(w,rep(wte[j,ipremy[j,k]:iderny[j,k]],rep(nn,iderny[j,k]-ipremy[j,k]+1)))
-        else
-          w = c(w,rep(wt[j,ipremy[j,k]:iderny[j,k]],rep(nn,iderny[j,k]-ipremy[j,k]+1)))
-      }
+        w = c(w,rep(wt[j,ipremy[j,k]:iderny[j,k]],rep(nn,iderny[j,k]-ipremy[j,k]+1)))
     }
   }
 
@@ -108,18 +111,34 @@ fit.matrices = function(dat,wi,X,duration,count.names,agecut,iprem,idern,ipremy,
   assign("iprem",iprem,env = parent.frame())
   assign("idern",idern,env = parent.frame())
   assign("imat",imat,env = parent.frame())
-  # Estimation des matrices
-  obj = nloptr::nloptr(x0 = theta0,eval_f = objective,eval_g_eq = contrc.fonc,opts = list("algorithm"="NLOPT_LN_AUGLAG","xtol_rel" = 1.0e-7,"print_level"=2,"maxeval"=1000,"local_opts"=list("algorithm" ="NLOPT_LN_COBYLA","xtol_rel" = 1.0e-7)))
 
-  if (boot) return(c(obj$solution,as.vector(wj)))
+  # Estimation des matrices
+  obj = nloptr::nloptr(x0 = theta0,eval_f = objective,eval_g_eq = contrc.fonc,opts = list("algorithm"="NLOPT_LN_AUGLAG","xtol_rel" = 1.0e-7,"print_level"=3,"maxeval"=1000,"local_opts"=list("algorithm" ="NLOPT_LN_BOBYQA","xtol_rel" = 1.0e-7)))
+  if (boot) {
+    if (length(vd)==0){
+      return(c(obj$solution,as.vector(wj)))
+    }
+    else{
+      return(c(obj$solution,as.vector(wj),unlist(indices)))
+    }
+  }
   else
   {
-    obj$wj = wj
-    return(obj)
+    if (length(vd)==0){
+      obj$wj = wj
+      return(obj)
+    }
+    else{
+      obj$wj = wj
+      obj$indices = indices
+      return(obj)
+    }
+
   }
+
 }
 
-fit.rates.matrices = function(dat,wi,X,duration,count.names,agecut,iprem,idern,ipremy,iderny,imat,theta0,iniv,var.kid,var.occup,boot=F)
+fit.rates.matrices = function(dat,wi,X,duration,count.names,agecut,iprem,idern,ipremy,iderny,imat,theta0,iniv,var.kid,vd,boot=F)
   #' @description Fitting contact matrices for multiple locations under the constraint that the matrix of the total of the contacts is symmetrical.
   #' @param dat Matrix containing the contacts counts for all age slices and all locations, in wide format
   #' @param wi Vector of individual weights
@@ -133,94 +152,91 @@ fit.rates.matrices = function(dat,wi,X,duration,count.names,agecut,iprem,idern,i
   #' @param iderny Matrix of the last age slice for each combination of location and type of household
 #' @param imat List of boolean matrices where each row indicates the contact matrices applicable to a different subset of subjects
 #' @param theta0 Vector of initial parameter values (log counts and dispersion parameters) to be passed to nlminb2
-#' @param iniv Vector of the index preceeding the first parameter of each contact matrix in the vector theta0
+#' @param iniv Vector of the indices preceeding the first parameter of each contact matrix in the vector theta0
+#' @param vd Vector of the indices of the matrices with a specific denominator. The names of this vector must be the boolean variables defining whether a subject is included in the denominator or not
 #' @param boot Boolean indicating whether to return only a vector of statistics. The default is FALSE, which implies the object produced by nlminb2 will be returned
 {
   if (missing(X)) objective = nlognb.counts.rates
   else
   {
     if (ncol(X) != (length(theta0)-1)) stop ("Number of columns of X ",ncol(X)," does not equal the length of theta0 minus one",length(theta0)-1)
-    assign("X",X,env = parent.frame())
     objective = nlognb.rates
   }
 
+  if (!missing(duration)) d = duration else d = rep(1,length(wi))
   nn = length(agecut)-1
 
   if (missing(var.kid))
   {
     tab = t(apply(dat[,count.names],2,function(vec) tapply(vec,cut(dat$age,breaks=agecut),sum,na.rm=T)))
-    if (!missing(duration))
-    {
-      wt = matrix(tapply(wi*duration,cut(dat$age,breaks=agecut),sum,na.rm=T),1,nn)
-      n.par.age = matrix(tapply(duration,cut(dat$age,breaks=agecut),sum,na.rm=T),1,nn)
-    }
-    else
-    {
-      wt = matrix(tapply(wi,cut(dat$age,breaks=agecut),sum,na.rm=T),1,nn)
-      n.par.age = matrix(tapply(wi,cut(dat$age,breaks=agecut),function(vec) sum(!is.na(vec))),1,nn)
-    }
+    wt = matrix(tapply(wi*d,cut(dat$age,breaks=agecut),sum,na.rm=T),1,nn)
+    n.par.age = matrix(tapply(d,cut(dat$age,breaks=agecut),sum,na.rm=T),1,nn)
   }
   else
   {
     tab = t(apply(dat[,count.names],2,function(vec) tapply(vec,list(cut(dat$age,breaks=agecut),dat[,var.kid]),sum,na.rm=T)))
-    if (!missing(duration))
-    {
-      wt = tapply(wi*duration,list(dat[,var.kid],cut(dat$age,breaks=agecut)),sum,na.rm=T)
-      n.par.age = tapply(duration,list(dat[,var.kid],cut(dat$age,breaks=agecut)),sum,na.rm=T)
-    }
-    else
-    {
-      wt = tapply(wi,list(dat[,var.kid],cut(dat$age,breaks=agecut)),sum,na.rm=T)
-      n.par.age = tapply(wi,list(dat[,var.kid],cut(dat$age,breaks=agecut)),function(vec) sum(!is.na(vec)))
-    }
+    wt = tapply(wi*d,list(dat[,var.kid],cut(dat$age,breaks=agecut)),sum,na.rm=T)
+    n.par.age = tapply(d,list(dat[,var.kid],cut(dat$age,breaks=agecut)),sum,na.rm=T)
   }
-  if (missing(var.occup))
+  if (missing(vd))
   {
-    wj = wtt = wte = wt
-    nj = nt = ne = n.par.age
+    wj = wt
+    nj = n.par.age
     wj[is.na(wj)] = 0
     nj[is.na(nj)] = 0
+    vd = numeric(0)
   }
   else
   {
-    # Ici on somme les poids par catÃ©gorie d'occupation
+    # Création de la variable catégorielle « lieud » à partir du croisement des niveaux
+    # des variables de dénominateurs incluses dans « vd » encodées 0/1 pour la 1re variable, 0/2 pour la 2e, ainsi de suite.
+    lieud = rep(0,nrow(dat))
+    for (v in 1:length(vd)) lieud = lieud + unlist(dat[names(vd)[v]])*2^(v-1)
+
+    # Ici on somme les poids par catégorie d'occupation
     if (missing(var.kid))
     {
-      wj = tapply(wi,list(dat[,var.occup],cut(dat$age,breaks=agecut)),sum,na.rm=T)
-      nj = tapply(wi,list(dat[,var.occup],cut(dat$age,breaks=agecut)),function(vec) sum(!is.na(vec)))
+      wj = tapply(wi*d,list(lieud,cut(dat$age,breaks=agecut)),sum,na.rm=T)
+      nj = tapply(d,list(lieud,cut(dat$age,breaks=agecut)),sum,na.rm=T)
     }
     else
     {
-      tmp = tapply(wi,list(dat[,var.occup],dat[,var.kid],cut(dat$age,breaks=agecut)),sum,na.rm=T)
+      tmp = tapply(wi*d,list(lieud,dat[,var.kid],cut(dat$age,breaks=agecut)),sum,na.rm=T)
       wj = apply(tmp,3,function(mat) stack(data.frame(mat))$values)
-      tmp = tapply(wi,list(dat[,var.occup],dat[,var.kid],cut(dat$age,breaks=agecut)),function(vec) sum(!is.na(vec)))
+      tmp = tapply(d,list(lieud,dat[,var.kid],cut(dat$age,breaks=agecut)),sum,na.rm=T)
       nj = apply(tmp,3,function(mat) stack(data.frame(mat))$values)
     }
     wj[is.na(wj)] = 0
     nj[is.na(nj)] = 0
 
-    # Poids et effectifs pour les matrices du travail et de l'Ã©cole(on somme les lignes de wj incluant des travailleurs)
-    if (missing(var.kid))
-    {
-      nt = matrix(apply(nj[c(3,4),],2,sum),1,nn)
-      ne = matrix(apply(nj[c(2,4),],2,sum),1,nn)
+    # Poids et effectifs pour les matrices par lieux (on somme les lignes de wj correspondantes)
 
-      wtt = matrix(apply(wj[c(3,4),],2,sum),1,nn)
-      wte = matrix(apply(wj[c(2,4),],2,sum),1,nn)
-    }
-    else
-    {
-      nt = rbind(apply(nj[c(3,4),],2,sum),apply(nj[c(7,8),],2,sum))
-      ne = rbind(apply(nj[c(2,4),],2,sum),apply(nj[c(6,8),],2,sum))
+    wl = nl = list()
+    cobs = sort(unique(lieud))
+    indices = list(0)
 
-      wtt = rbind(apply(wj[c(3,4),],2,sum),apply(wj[c(7,8),],2,sum))
-      wte = rbind(apply(wj[c(2,4),],2,sum),apply(wj[c(6,8),],2,sum))
+    for (v in 1:length(vd))
+    {
+      # Recul de la dernière rangée pour une matrice
+      suite = rep(seq(0,2^length(vd)-2^v,by=2^v),rep(2^(v-1),2^(length(vd)-v))) + rep((2^(v-1)+1):2^v,2^(length(vd)-v)) - 1
+      ir = which(cobs%in%suite)
+      if (missing(var.kid))
+      {
+        nl[[vd[v]]] = matrix(apply(nj[ir,],2,sum),1,nn)
+        wl[[vd[v]]] = matrix(apply(wj[ir,],2,sum),1,nn)
+      }
+      else
+      {
+        nl[[vd[v]]] = rbind(apply(nj[ir,],2,sum),apply(nj[nrow(nj)/2+ir,],2,sum))
+        wl[[vd[v]]] = rbind(apply(wj[ir,],2,sum),apply(wj[nrow(nj)/2+ir,],2,sum))
+      }
+      indices[[v]]=ir
     }
   }
 
-  # CrÃ©ation du vecteur de comptes y, du vecteur d'effectifs nvec et du vecteur de poids w et du vecteur d'indices de dÃ©but de chaque matrice iniv
+  # Création du vecteur de comptes y, du vecteur d'effectifs nvec et du vecteur de poids w et du vecteur d'indices de début de chaque matrice iniv
   y = w = nvec = NULL
-  # Boucle sur les types de matrices (5 types)
+  # Boucle sur les types de matrices
   for (k in 1:(nrow(tab)/nn))
   {
     # Boucle sur le statut avec017 (non/oui)
@@ -228,32 +244,33 @@ fit.rates.matrices = function(dat,wi,X,duration,count.names,agecut,iprem,idern,i
     {
       vec = as.vector(tab[(k-1)*nn+1:nn,(j-1)*nn+ipremy[j,k]:iderny[j,k]])
       y = c(y,vec)
-      # Si c'est la matrice du travail
-      if (k == 2)
+      # Si la matrice a un dénominateur spécifique
+      if (k %in% vd)
       {
-        w = c(w,rep(wtt[j,ipremy[j,k]:iderny[j,k]],rep(nn,iderny[j,k]-ipremy[j,k]+1)))
-        nvec = c(nvec,rep(nt[j,ipremy[j,k]:iderny[j,k]],rep(nn,iderny[j,k]-ipremy[j,k]+1)))
+        w = c(w,rep(wl[[k]][j,ipremy[j,k]:iderny[j,k]],rep(nn,iderny[j,k]-ipremy[j,k]+1)))
+        nvec = c(nvec,rep(nl[[k]][j,ipremy[j,k]:iderny[j,k]],rep(nn,iderny[j,k]-ipremy[j,k]+1)))
       }
       else
       {
-        # Si c'est la matrice de l'Ã©cole
-        if (k == 3)
-        {
-          w = c(w,rep(wte[j,ipremy[j,k]:iderny[j,k]],rep(nn,iderny[j,k]-ipremy[j,k]+1)))
-          nvec = c(nvec,rep(ne[j,ipremy[j,k]:iderny[j,k]],rep(nn,iderny[j,k]-ipremy[j,k]+1)))
-        }
-        else
-        {
-          w = c(w,rep(wt[j,ipremy[j,k]:iderny[j,k]],rep(nn,iderny[j,k]-ipremy[j,k]+1)))
-          nvec = c(nvec,rep(n.par.age[j,ipremy[j,k]:iderny[j,k]],rep(nn,iderny[j,k]-ipremy[j,k]+1)))
-        }
+        w = c(w,rep(wt[j,ipremy[j,k]:iderny[j,k]],rep(nn,iderny[j,k]-ipremy[j,k]+1)))
+        nvec = c(nvec,rep(n.par.age[j,ipremy[j,k]:iderny[j,k]],rep(nn,iderny[j,k]-ipremy[j,k]+1)))
       }
     }
+  }
+  # On garde seulement les combinaisons dont les effectifs sont non-nuls
+  nonnul = nvec>0
+  nvec = nvec[nonnul]
+  y=y[nonnul]
+  w=w[nonnul]
+  if (!missing(X))
+  {
+    X=X[nonnul,]
+    assign("X",X,env = parent.frame())
   }
   # normalisation des poids
   w = w/nvec
 
-  # Assignation des objets requis par nlognb et contrc.fonc dans l'environnement parent
+  # Assignation des objets requis par nlognb.rates et contrc.fonc dans l'environnement parent
   assign("nn",nn,env = parent.frame())
   assign("y",y,env = parent.frame())
   assign("w",w,env = parent.frame())
@@ -263,14 +280,29 @@ fit.rates.matrices = function(dat,wi,X,duration,count.names,agecut,iprem,idern,i
   assign("iprem",iprem,env = parent.frame())
   assign("idern",idern,env = parent.frame())
   assign("imat",imat,env = parent.frame())
-  # Estimation des matrices
-  obj = nloptr::nloptr(x0 = theta0,eval_f = objective,eval_g_eq = contrc.fonc,opts = list("algorithm"="NLOPT_LN_AUGLAG","xtol_rel" = 1.0e-7,"print_level"=2,"maxeval"=1000,"local_opts"=list("algorithm" ="NLOPT_LN_COBYLA","xtol_rel" = 1.0e-7)))
 
-  if (boot) return(c(obj$solution,as.vector(wj)))
+  # Estimation des matrices
+  obj = nloptr::nloptr(x0 = theta0,eval_f = objective,eval_g_eq = contrc.fonc,opts = list("algorithm"="NLOPT_LN_AUGLAG","xtol_rel" = 1.0e-7,"print_level"=3,"maxeval"=1000,"local_opts"=list("algorithm" ="NLOPT_LN_BOBYQA","xtol_rel" = 1.0e-7)))
+  if (boot) {
+    if (length(vd)==0){
+      return(c(obj$solution,as.vector(wj)))
+    }
+    else{
+      return(c(obj$solution,as.vector(wj),unlist(indices)))
+    }
+  }
   else
   {
-    obj$wj = wj
-    return(obj)
+    if (length(vd)==0){
+      obj$wj = wj
+      return(obj)
+    }
+    else{
+      obj$wj = wj
+      obj$indices = indices
+      return(obj)
+    }
+
   }
 }
 
@@ -280,7 +312,7 @@ nlognb = function(theta)
   #' @details Computes minus the log-likelihood of a negative binomial distribution. There must be a vector y of contact counts, a design matrix X and a vector of weights w in the environment. The last parameter is the scale parameter, all others are regression coefficients.
   #' @return minus the log-likelihood
 {
-  # On sÃ©pare le paramÃ¨tre d'Ã©chelle (dernier) des coefficients
+  # On sépare le paramètre d'échelle (dernier) des coefficients
   b = theta[-length(theta)]
   a = theta[length(theta)]
   a=ifelse(a>0,yes = a,no=0.01)
@@ -295,7 +327,7 @@ nlognb.rates = function(theta)
   #' @details Computes minus the log-likelihood of a negative binomial distribution. There must be a vector y of contact counts, a design matrix X and a vector of weights w in the environment. The last parameter is the scale parameter, all others are regression coefficients.
   #' @return minus the log-likelihood
 {
-  # On sÃ©pare le paramÃ¨tre d'Ã©chelle (dernier) des coefficients
+  # On sépare le paramètre d'échelle (dernier) des coefficients
   b = theta[-length(theta)]
   a = theta[length(theta)]
   a=ifelse(a>0,yes = a,no=0.01)
@@ -310,7 +342,7 @@ nlognb.counts = function(theta)
   #' @details Computes minus the log-likelihood of a negative binomial distribution. There must be a vector y of contact counts and a vector of weights w in the environment. The last parameter is the scale parameter, all others are log mean counts.
   #' @return minus the log-likelihood
 {
-  # On sÃ©pare le paramÃ¨tre d'Ã©chelle (dernier) des coefficients
+  # On sépare le paramètre d'échelle (dernier) des coefficients
   mu = exp(theta[-length(theta)])
   a = theta[length(theta)]
   a=ifelse(a>0,yes = a,no=0.01)
@@ -324,7 +356,7 @@ nlognb.counts.rates = function(theta)
   #' @details Computes minus the log-likelihood of a negative binomial distribution. There must be a vector y of contact counts and a vector of weights w in the environment. The last parameter is the scale parameter, all others are log mean counts.
   #' @return minus the log-likelihood
 {
-  # On sÃ©pare le paramÃ¨tre d'Ã©chelle (dernier) des coefficients
+  # On sépare le paramètre d'échelle (dernier) des coefficients
   mu = nvec*exp(theta[-length(theta)])
   a = theta[length(theta)]
   a=ifelse(a>0,yes = a,no=0.01)
@@ -374,27 +406,27 @@ contrc.fonc = function(theta)
 {
   b = theta[-length(theta)]
   contr.vec = numeric(0)
-  # Boucle sur les tranches d'Ã¢ge des participants
+  # Boucle sur les tranches d'âge des participants
   for(k in 1:(nn-1))
   {
-    # Indice initial pour ce groupe d'Ã¢ge dans le vecteur de coefficients
+    # Indice initial pour ce groupe d'âge dans le vecteur de coefficients
     tmp = numeric(nn-k)
-    # Boucle sur les combinaisons possibles de matrices pour un groupe d'Ã¢ge
+    # Boucle sur les combinaisons possibles de matrices pour un groupe d'âge
     for(h in 1:nrow(imat[[k]]))
     {
-      # imat[[k]][h,] s'assure qu'on a atteint la 1re tranche d'Ã¢ge pour la matrice
+      # imat[[k]][h,] s'assure qu'on a atteint la 1re tranche d'âge pour la matrice
       # Pour la matrice mc des colonnes dans les contraintes, on fait le calcul complet
       mc = matrix(exp(b[outer((k+1):nn, iniv[imat[[k]][h,]] + (k-iprem[imat[[k]][h,]])*nn,"+")]),nn-k,sum(imat[[k]][h,]))
-      # Matrice des indices de la ligne des contacts de la tranche d'Ã¢ge k pour les participants de la 1re tranche d'Ã¢ge des participants
+      # Matrice des indices de la ligne des contacts de la tranche d'âge k pour les participants de la 1re tranche d'âge des participants
       mil = matrix(iniv[imat[[nn+1]][h,]],nn-k,sum(imat[[nn+1]][h,]),byrow=T) + k
       #		ml = matrix(0,nn-k,sum(imat[[k]][h,]))
-      # On utilise la derniÃ¨re entrÃ©e de imat donnant toutes les matrices qui peuvent Ãªtre impliquÃ©es
+      # On utilise la dernière entrée de imat donnant toutes les matrices qui peuvent être impliquées
       ml = matrix(0,nn-k,sum(imat[[nn+1]][h,]))
       for (l in 1:ncol(ml))
-        # Pour la matrice ml des lignes dans les contraintes, la tranche d'Ã¢ge k contribue seulement si les participants de cette tranche sont inclus dans la matrice impliquÃ©e
+        # Pour la matrice ml des lignes dans les contraintes, la tranche d'âge k contribue seulement si les participants de cette tranche sont inclus dans la matrice impliquée
         if (k<idern[imat[[nn+1]][h,]][l])
         {
-          # On ajoute Ã  l'indice de base dans mil le dÃ©calage pour la tranche d'Ã¢ge k des participants
+          # On ajoute à l'indice de base dans mil le décalage pour la tranche d'âge k des participants
           ml[max(1,iprem[imat[[nn+1]][h,]][l]-k)+0:(idern[imat[[nn+1]][h,]][l]-max(k+1,iprem[imat[[nn+1]][h,]][l])),l] = exp(b[mil[1:(idern[imat[[nn+1]][h,]][l]-max(k,iprem[imat[[nn+1]][h,]][l]-1)),l] + ((max(k+1,iprem[imat[[nn+1]][h,]][l]):idern[imat[[nn+1]][h,]][l])-iprem[imat[[nn+1]][h,]][l])*nn ])
         }
       tmp = tmp + wj[h,k]*apply(mc,1,sum) - wj[h,(k+1):nn]*apply(ml,1,sum)
