@@ -222,11 +222,22 @@ fit.rates.matrices = function(dat,wi,X,duration,count.names,agecut,iprem,idern,i
 		  # Indices des combinaisons de dénominateurs présents dans les matrices nj et wj
 		  suite = rep(seq(0,2^length(vd)-2^v,by=2^v),rep(2^(v-1),2^(length(vd)-v))) + rep((2^(v-1)+1):2^v,2^(length(vd)-v)) - 1
 		  ir = which(cobs%in%suite)
-		  if (missing(var.strat)) irs = ir
-		  else irs = rep(seq(0,nrow(nj)*(1-1/nstrat),by=nrow(nj)/nstrat),rep(nrow(nj)/nstrat,nstrat))+ir
-		  nl[[vd[v]]] = matrix(apply(nj[irs,],2,sum),1,nn)
-			wl[[vd[v]]] = matrix(apply(wj[irs,],2,sum),1,nn)
-			indices[[v]]=ir
+		  if (missing(var.strat)) 
+		  {
+		    nl[[vd[v]]] = matrix(apply(nj[ir,],2,sum),1,nn)
+		    wl[[vd[v]]] = matrix(apply(wj[ir,],2,sum),1,nn)
+		  }
+		  else 
+		  {
+		    nl[[vd[v]]] = wl[[vd[v]]] = matrix(NA,nstrat,nn)
+		    dec = seq(0,nrow(nj)*(1-1/nstrat),by=nrow(nj)/nstrat)
+		    for (h in 1:nstrat)
+		    {
+		      nl[[vd[v]]][h,] = apply(nj[dec[h] + ir,],2,sum)
+		      wl[[vd[v]]][h,] = apply(wj[dec[h] + ir,],2,sum)
+		    }
+		  }
+		  indices[[v]]=ir
 		}
 	}
 
@@ -235,7 +246,7 @@ fit.rates.matrices = function(dat,wi,X,duration,count.names,agecut,iprem,idern,i
 	# Boucle sur les types de matrices
 	for (k in 1:(nrow(tab)/nn))
 	{
-		# Boucle sur le statut avec017 (non/oui)
+		# Boucle sur les strates
 		for (j in 1:(ncol(tab)/nn))
 		{
 		  vec = as.vector(tab[(k-1)*nn+1:nn,(j-1)*nn+ipremy[j,k]:iderny[j,k]])
