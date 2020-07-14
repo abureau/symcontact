@@ -138,7 +138,7 @@ fit.matrices = function(dat,wi,X,duration,count.names,agecut,iprem,idern,ipremy,
 
 }
 
-fit.rates.matrices = function(dat,wi,X,duration,count.names,agecut,iprem,idern,ipremy,iderny,imat,theta0,iniv,var.kid,vd,boot=F)
+fit.rates.matrices = function(dat,wi,X,duration,count.names,agecut,iprem,idern,ipremy,iderny,imat,theta0,iniv,var.strat,vd,boot=F)
 #' @description Fitting contact matrices for multiple locations under the constraint that the matrix of the total of the contacts is symmetrical.
 #' @param dat Matrix containing the contacts counts for all age slices and all locations, in wide format
 #' @param wi Vector of individual weights
@@ -153,6 +153,7 @@ fit.rates.matrices = function(dat,wi,X,duration,count.names,agecut,iprem,idern,i
 #' @param imat List of boolean matrices where each row indicates the contact matrices applicable to a different subset of subjects
 #' @param theta0 Vector of initial parameter values (log counts and dispersion parameters) to be passed to nlminb2
 #' @param iniv Vector of the indices preceeding the first parameter of each contact matrix in the vector theta0
+#' @param var.strat Names of the variable in dat defining strata in the data (optional)
 #' @param vd Vector of the indices of the matrices with a specific denominator. The names of this vector must be the boolean variables defining whether a subject is included in the denominator or not
 #' @param boot Boolean indicating whether to return only a vector of statistics. The default is FALSE, which implies the object produced by nlminb2 will be returned
 {
@@ -166,7 +167,7 @@ fit.rates.matrices = function(dat,wi,X,duration,count.names,agecut,iprem,idern,i
 	if (!missing(duration)) d = duration else d = rep(1,length(wi))
 	nn = length(agecut)-1
 
-	if (missing(var.kid))
+	if (missing(var.strat))
 	{
 		tab = t(apply(dat[,count.names],2,function(vec) tapply(vec,cut(dat$age,breaks=agecut),sum,na.rm=T)))
 		wt = matrix(tapply(wi*d,cut(dat$age,breaks=agecut),sum,na.rm=T),1,nn)
@@ -174,9 +175,9 @@ fit.rates.matrices = function(dat,wi,X,duration,count.names,agecut,iprem,idern,i
 }
 	else
 	{
-		tab = t(apply(dat[,count.names],2,function(vec) tapply(vec,list(cut(dat$age,breaks=agecut),dat[,var.kid]),sum,na.rm=T)))
-		wt = tapply(wi*d,list(dat[,var.kid],cut(dat$age,breaks=agecut)),sum,na.rm=T)
-		n.par.age = tapply(d,list(dat[,var.kid],cut(dat$age,breaks=agecut)),sum,na.rm=T)
+		tab = t(apply(dat[,count.names],2,function(vec) tapply(vec,list(cut(dat$age,breaks=agecut),dat[,var.strat]),sum,na.rm=T)))
+		wt = tapply(wi*d,list(dat[,var.strat],cut(dat$age,breaks=agecut)),sum,na.rm=T)
+		n.par.age = tapply(d,list(dat[,var.strat],cut(dat$age,breaks=agecut)),sum,na.rm=T)
 	}
 	if (missing(vd))
 	{
@@ -194,17 +195,18 @@ fit.rates.matrices = function(dat,wi,X,duration,count.names,agecut,iprem,idern,i
 	  for (v in 1:length(vd)) lieud = lieud + unlist(dat[names(vd)[v]])*2^(v-1)
 
 		# Ici on somme les poids par catégorie d'occupation
-		if (missing(var.kid))
+		if (missing(var.strat))
 		{
 			wj = tapply(wi*d,list(lieud,cut(dat$age,breaks=agecut)),sum,na.rm=T)
 			nj = tapply(d,list(lieud,cut(dat$age,breaks=agecut)),sum,na.rm=T)
 		}
 		else
 		{
-			tmp = tapply(wi*d,list(lieud,dat[,var.kid],cut(dat$age,breaks=agecut)),sum,na.rm=T)
+			tmp = tapply(wi*d,list(lieud,dat[,var.strat],cut(dat$age,breaks=agecut)),sum,na.rm=T)
 			wj = apply(tmp,3,function(mat) stack(data.frame(mat))$values)
-			tmp = tapply(d,list(lieud,dat[,var.kid],cut(dat$age,breaks=agecut)),sum,na.rm=T)
+			tmp = tapply(d,list(lieud,dat[,var.strat],cut(dat$age,breaks=agecut)),sum,na.rm=T)
 			nj = apply(tmp,3,function(mat) stack(data.frame(mat))$values)
+			nstrat = dim(tmp)[[2]]
 		}
 		wj[is.na(wj)] = 0
 		nj[is.na(nj)] = 0
@@ -217,20 +219,14 @@ fit.rates.matrices = function(dat,wi,X,duration,count.names,agecut,iprem,idern,i
 
 		for (v in 1:length(vd))
 		{
-		  # Recul de la dernière rangée pour une matrice
+		  # Indices des combinaisons de dénominateurs présents dans les matrices nj et wj
 		  suite = rep(seq(0,2^length(vd)-2^v,by=2^v),rep(2^(v-1),2^(length(vd)-v))) + rep((2^(v-1)+1):2^v,2^(length(vd)-v)) - 1
 		  ir = which(cobs%in%suite)
-		  if (missing(var.kid))
-		  {
-			  nl[[vd[v]]] = matrix(apply(nj[ir,],2,sum),1,nn)
-			  wl[[vd[v]]] = matrix(apply(wj[ir,],2,sum),1,nn)
-		  }
-		  else
-		  {
-			  nl[[vd[v]]] = rbind(apply(nj[ir,],2,sum),apply(nj[nrow(nj)/2+ir,],2,sum))
-			  wl[[vd[v]]] = rbind(apply(wj[ir,],2,sum),apply(wj[nrow(nj)/2+ir,],2,sum))
-		  }
-		  indices[[v]]=ir
+		  if (missing(var.strat)) irs = ir
+		  else irs = rep(seq(0,nrow(nj)*(1-1/nstrat),by=nrow(nj)/nstrat),rep(nrow(nj)/nstrat,nstrat))+ir
+		  nl[[vd[v]]] = matrix(apply(nj[irs,],2,sum),1,nn)
+			wl[[vd[v]]] = matrix(apply(wj[irs,],2,sum),1,nn)
+			indices[[v]]=ir
 		}
 	}
 
