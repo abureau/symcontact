@@ -9,7 +9,7 @@ fit.matrices = function(dat,wi,X,duration,count.names,agecut,iprem,idern,ipremy,
 #' @param wi Vector of individual weights
 #' @param X Design matrix for the cross-tabulated data (optionnal)
 #' @param duration Vector of durations of observations of contacts (optionnal)
-#' @param count.names Vector of names of the columns of dat containing the contacts counts
+#' @param count.names Vector of names of the columns of dat containing the contact counts. Blocks of max(idern) consecutive names (the number of age slices) must contain the contact counts for all age slices in one location.
 #' @param agecut Vector of breakpoints of the age slices for the participants (should match the age slices for the contacts)
 #' @param iprem Vector of the first age slice for each contact matrix
 #' @param idern Vector of the last age slice for each contact matrix
