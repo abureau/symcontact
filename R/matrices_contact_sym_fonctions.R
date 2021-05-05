@@ -144,7 +144,7 @@ fit.rates.matrices = function(dat,wi,X,duration,count.names,agecut,iprem,idern,i
 #' @param wi Vector of individual weights
 #' @param X Design matrix for the cross-tabulated data (optionnal)
 #' @param duration Vector of durations of observations of contacts (optionnal)
-#' @param count.names Vector of names of the columns of dat containing the contacts counts
+#' @param count.names Vector of names of the columns of dat containing the contact counts. Blocks of max(idern) consecutive names (the number of age slices) must contain the contact counts for all age slices in one location.
 #' @param agecut Vector of breakpoints of the age slices for the participants (should match the age slices for the contacts)
 #' @param iprem Vector of the first age slice for each contact matrix
 #' @param idern Vector of the last age slice for each contact matrix
@@ -313,6 +313,215 @@ fit.rates.matrices = function(dat,wi,X,duration,count.names,agecut,iprem,idern,i
 	}
 }
 
+fit.pair.rates.matrices = function(dat,wi,X,duration,count.names,agecut,iprem,idern,ipremy,iderny,imat,theta0,iniv,var.strat,vd,boot=F)
+  #' @description Fitting contact matrices for multiple locations under the constraint that the matrix of the total of the contacts is symmetrical.
+  #' @param dat Matrix containing the contacts counts for all age slices and all locations, in wide format
+  #' @param wi Vector of individual weights
+  #' @param X Design matrix for the cross-tabulated data (optionnal)
+  #' @param duration Vector of durations of observations of contacts (optionnal)
+  #' @param count.names Vector of names of the columns of dat containing the contact counts. Blocks of max(idern) consecutive names (the number of age slices) must contain the contact counts for all age slices in one location.
+  #' @param agecut Vector of breakpoints of the age slices for the participants (should match the age slices for the contacts)
+  #' @param iprem Vector of the first age slice for each contact matrix
+  #' @param idern Vector of the last age slice for each contact matrix
+  #' @param ipremy Matrix of the first age slice for each combination of location and type of household
+  #' @param iderny Matrix of the last age slice for each combination of location and type of household
+#' @param imat List of boolean matrices where each row indicates the contact matrices applicable to a different subset of subjects
+#' @param theta0 Vector of initial parameter values (log counts and dispersion parameters) to be passed to nlminb2
+#' @param iniv Vector of the indices preceeding the first parameter of each contact matrix in the vector theta0
+#' @param var.strat Names of the variable in dat defining strata in the data (optional)
+#' @param vd Vector of the indices of the matrices with a specific denominator. The names of this vector must be the boolean variables defining whether a subject is included in the denominator or not
+#' @param boot Boolean indicating whether to return only a vector of statistics. The default is FALSE, which implies the object produced by nlminb2 will be returned
+{
+  if (missing(X)) objective = nlognb.pair.counts.rates
+  else
+  {
+#    if (ncol(X) != (length(theta0)-1)) stop ("Number of columns of X ",ncol(X)," does not equal the length of theta0 minus one",length(theta0)-1)
+#    objective = nlognb.rates
+  stop("Design matrix X is not implemented yet.")
+  }
+  
+  if (!missing(duration)) d = duration else d = rep(1,length(wi))
+  nn = length(agecut)-1
+  
+  if (missing(var.strat))
+  {
+    tab = t(apply(dat[,count.names],2,function(vec) tapply(vec,cut(dat$age,breaks=agecut),sum,na.rm=T)))
+    wt = matrix(tapply(wi*d,cut(dat$age,breaks=agecut),sum,na.rm=T),1,nn)
+    n.par.age = matrix(tapply(d,cut(dat$age,breaks=agecut),sum,na.rm=T),1,nn)
+  }
+  else
+  {
+    tab = t(apply(dat[,count.names],2,function(vec) tapply(vec,list(cut(dat$age,breaks=agecut),dat[,var.strat]),sum,na.rm=T)))
+    wt = tapply(wi*d,list(dat[,var.strat],cut(dat$age,breaks=agecut)),sum,na.rm=T)
+    n.par.age = tapply(d,list(dat[,var.strat],cut(dat$age,breaks=agecut)),sum,na.rm=T)
+  }
+  if (missing(vd))
+  {
+    wj = wt
+    nj = n.par.age
+    wj[is.na(wj)] = 0
+    nj[is.na(nj)] = 0
+    vd = numeric(0)
+  }
+  else
+  {
+    # Création de la variable catégorielle « lieud » à partir du croisement des niveaux
+    # des variables de dénominateurs incluses dans « vd » encodées 0/1 pour la 1re variable, 0/2 pour la 2e, ainsi de suite.
+    lieud = rep(0,nrow(dat))
+    for (v in 1:length(vd)) lieud = lieud + unlist(dat[names(vd)[v]])*2^(v-1)
+    
+    # Ici on somme les poids par catégorie d'occupation
+    if (missing(var.strat))
+    {
+      wj = tapply(wi*d,list(lieud,cut(dat$age,breaks=agecut)),sum,na.rm=T)
+      nj = tapply(d,list(lieud,cut(dat$age,breaks=agecut)),sum,na.rm=T)
+    }
+    else
+    {
+      tmp = tapply(wi*d,list(lieud,dat[,var.strat],cut(dat$age,breaks=agecut)),sum,na.rm=T)
+      wj = apply(tmp,3,function(mat) stack(data.frame(mat))$values)
+      tmp = tapply(d,list(lieud,dat[,var.strat],cut(dat$age,breaks=agecut)),sum,na.rm=T)
+      nj = apply(tmp,3,function(mat) stack(data.frame(mat))$values)
+      nstrat = dim(tmp)[[2]]
+    }
+    wj[is.na(wj)] = 0
+    nj[is.na(nj)] = 0
+    
+    # Poids et effectifs pour les matrices par lieux (on somme les lignes de wj correspondantes)
+    
+    wl = nl = list()
+    cobs = sort(unique(lieud))
+    indices = list(0)
+    
+    for (v in 1:length(vd))
+    {
+      # Indices des combinaisons de dénominateurs présents dans les matrices nj et wj
+      suite = rep(seq(0,2^length(vd)-2^v,by=2^v),rep(2^(v-1),2^(length(vd)-v))) + rep((2^(v-1)+1):2^v,2^(length(vd)-v)) - 1
+      ir = which(cobs%in%suite)
+      if (missing(var.strat)) 
+      {
+        nl[[vd[v]]] = matrix(apply(nj[ir,],2,sum),1,nn)
+        wl[[vd[v]]] = matrix(apply(wj[ir,],2,sum),1,nn)
+      }
+      else 
+      {
+        nl[[vd[v]]] = wl[[vd[v]]] = matrix(NA,nstrat,nn)
+        dec = seq(0,nrow(nj)*(1-1/nstrat),by=nrow(nj)/nstrat)
+        for (h in 1:nstrat)
+        {
+          nl[[vd[v]]][h,] = apply(nj[dec[h] + ir,],2,sum)
+          wl[[vd[v]]][h,] = apply(wj[dec[h] + ir,],2,sum)
+        }
+      }
+      indices[[v]]=ir
+    }
+  }
+  
+  # Création du vecteur de comptes y, du vecteur d'effectifs nvec et du vecteur de poids w et du vecteur d'indices de début de chaque matrice iniv
+  rowvec=colvec=numeric(0)
+  y = w = nvec = NULL
+  # Boucle sur les types de matrices
+  for (k in 1:(nrow(tab)/nn))
+  {
+    # Boucle sur les strates
+    for (j in 1:(ncol(tab)/nn))
+    {
+      vec = as.vector(tab[(k-1)*nn+1:nn,(j-1)*nn+ipremy[j,k]:iderny[j,k]])
+      y = c(y,vec)
+      # Si la matrice a un dénominateur spécifique
+      if (k %in% vd)
+      {
+        w = c(w,rep(wl[[k]][j,ipremy[j,k]:iderny[j,k]],rep(nn,iderny[j,k]-ipremy[j,k]+1)))
+        nvec = c(nvec,rep(nl[[k]][j,ipremy[j,k]:iderny[j,k]],rep(nn,iderny[j,k]-ipremy[j,k]+1)))
+      }
+      else
+      {
+        w = c(w,rep(wt[j,ipremy[j,k]:iderny[j,k]],rep(nn,iderny[j,k]-ipremy[j,k]+1)))
+        nvec = c(nvec,rep(n.par.age[j,ipremy[j,k]:iderny[j,k]],rep(nn,iderny[j,k]-ipremy[j,k]+1)))
+      }
+      # Adapter pour que ceci fonctionne avec des strates où les tranches de début et de fin diffèrent
+      rowvec=c(rowvec,rep(1:nn,idern[k]-iprem[k]+1))
+      colvec=c(colvec,rep(iprem[k]:idern[k],rep(nn,idern[k]-iprem[k]+1)))
+    }
+  }
+  # On garde seulement les combinaisons dont les effectifs sont non-nuls
+  nonnul = nvec>0
+  nvec = nvec[nonnul]
+  y=y[nonnul]
+  w=w[nonnul]
+  # if (!missing(X))
+  # {
+  #   X=X[nonnul,]
+  #   assign("X",X,env = parent.frame())
+  # }
+  # normalisation des poids
+  w = w/nvec
+  
+  # Assignation des objets requis par nlognb.rates et contrc.fonc dans l'environnement parent
+  assign("nn",nn,env = parent.frame())
+  assign("y",y,env = parent.frame())
+  assign("w",w,env = parent.frame())
+  assign("wj",wj,env = parent.frame())
+  assign("nvec",nvec,env = parent.frame())
+  assign("iniv",iniv,env = parent.frame())
+  assign("iprem",iprem,env = parent.frame())
+  assign("idern",idern,env = parent.frame())
+  assign("imat",imat,env = parent.frame())
+  # Paramètre d'échelle (dernier) des coefficients reste fixé
+  assign("a",theta0[length(theta0)],env = parent.frame())
+
+  MattoVec=array(0,c(nn,nn,200))
+  lengthvec=matrix(rep(0,nn*nn),nrow=nn,ncol=nn)
+  for (i in 1:length(rowvec))
+  {
+    MattoVec[rowvec[i],colvec[i],lengthvec[rowvec[i]+nn*(colvec[i]-1)]+1]=i
+    lengthvec[rowvec[i]+nn*(colvec[i]-1)]=lengthvec[rowvec[i]+nn*(colvec[i]-1)]+1
+  }
+  
+  underdiagvec=c(0,cumsum((nn-1):1))
+  thetaparam=theta0
+  
+  # Estimation des matrices
+  for (i in 1:((nn-1)*nn/2))
+  {
+    colval=sum(ceiling((i-underdiagvec)/9999))
+    rowval=i-underdiagvec[colval]+colval
+    subvec1=MattoVec[rowval,colval,1:lengthvec[rowval,colval]]
+    subvec2=MattoVec[colval,rowval,1:lengthvec[colval,rowval]]
+    assign("subvec1",subvec1,env = parent.frame())
+    assign("subvec2",subvec2,env = parent.frame())
+    assign("colval",colval,env = parent.frame())
+    assign("rowval",rowval,env = parent.frame())
+    
+    obj = ROI:::nlminb2(start=theta0[c(subvec1,subvec2)],objective=objective,eqFun=contrc.pair.fonc)
+    thetaparam[c(subvec1,subvec2)]=obj$par
+  }
+  if (boot) {
+    if (length(vd)==0){
+      return(c(thetaparam,as.vector(wj)))
+    }
+    else{
+      return(c(thetaparam,as.vector(wj),unlist(indices)))
+    }
+  }
+  else
+  {
+    objr=list()
+    if (length(vd)==0){
+      objr$par=thetaparam
+      objr$wj = wj
+      return(objr)
+    }
+    else{
+      objr$par=thetaparam
+      objr$wj = wj
+      objr$indices = indices
+      return(objr)
+    }
+    
+  }
+}
+
 
 nlognb = function(theta)
 #' @param theta Vector of parameters
@@ -368,6 +577,18 @@ nlognb.counts.rates = function(theta)
 	return (-ll)
 }
 
+nlognb.pair.counts.rates = function(theta)
+  #' @param theta Vector of parameters
+  #' @details Computes minus the log-likelihood of a negative binomial distribution. There must be a vector y of contact counts and a vector of weights w in the environment. The last parameter is the scale parameter, all others are log mean counts.
+  #' @return minus the log-likelihood
+{
+  y2=y[c(subvec1,subvec2)]
+  w2=w[c(subvec1,subvec2)]
+  mu = nvec[c(subvec1,subvec2)]*exp(theta)
+  ll = 0
+  for (i in 1:length(y2)) ll = ll + w2[i]*dnbinom(x= y2[i], size=a, mu=mu[i], log = TRUE)
+  return (-ll)
+}
 
 contr.fonc = function(theta)
 #' @param theta Vector of parameters
@@ -437,6 +658,30 @@ for(k in 1:(nn-1))
 	contr.vec = c(contr.vec,tmp)
 }
 return(contr.vec)
+}
+
+contrc.pair.fonc = function(theta)
+  #' @param theta Vector of parameters
+  #' @details Evaluates contrasts to inforce symetry of the sum of length(iniv) matrices. In the environment there must be indices rowval and colval of row and column values a vector y of contact counts, a vector w of weights, a vector iniv of start indices for each contact matrix, a vector iprem of initial age slice for each contact matrix and a list imat of boolean matrices indicating which contact matrices apply to each age slice for each combination of matrices applicable to the age slice. Parameters are log mean counts (except the last one).
+  #' @return Vector of constraint values
+{
+
+    tmp = 0
+    # Boucle sur les combinaisons possibles de matrices pour un groupe d'âge
+    for(h in 1:nrow(imat[[colval]]))
+    {
+      mc = exp(theta[1:length(subvec1)])
+      # Ici ça donne les indices des matrices auxquels correspondent des coefficients dans subvec2
+      # mais je ne comprends pas comment les coefficients dans subvec2 sont obtenus
+      
+      #ivec = which((iniv[imat[[nn+1]][h,]] + colval + (pmax(colval+1,iprem[imat[[nn+1]][h,]][1:sum(imat[[nn+1]][h,])])-iprem[imat[[nn+1]][h,]][1:sum(imat[[nn+1]][h,])])*nn)%in%subvec2)
+      ml = exp(theta[(length(subvec1)+1):length(theta)])
+#   ml = numeric(nn-rowval+1)
+#      for (l in 1:length(ivec))
+#        ml[pmax(1,iprem[imat[[nn+1]][h,]][ivec[l]]-colval)] = ml[pmax(1,iprem[imat[[nn+1]][h,]][ivec[l]]-colval)] + exp(theta[length(subvec1)+l])
+      tmp = tmp + wj[h,colval]*sum(mc) - wj[h,rowval]*sum(ml)
+    }
+  return(tmp)
 }
 
 
