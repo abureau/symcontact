@@ -335,9 +335,9 @@ fit.pair.rates.matrices = function(dat,wi,X,duration,count.names,agecut,iprem,id
   if (missing(X)) objective = nlognb.pair.counts.rates
   else
   {
-#    if (ncol(X) != (length(theta0)-1)) stop ("Number of columns of X ",ncol(X)," does not equal the length of theta0 minus one",length(theta0)-1)
-#    objective = nlognb.rates
-  stop("Design matrix X is not implemented yet.")
+    if (ncol(X) != (length(theta0)-1)) stop ("Number of columns of X ",ncol(X)," does not equal the length of theta0 minus one",length(theta0)-1)
+    objective = nlognb.pair.rates
+#  stop("Design matrix X is not implemented yet.")
   }
   
   if (!missing(duration)) d = duration else d = rep(1,length(wi))
@@ -439,21 +439,20 @@ fit.pair.rates.matrices = function(dat,wi,X,duration,count.names,agecut,iprem,id
         w = c(w,rep(wt[j,ipremy[j,k]:iderny[j,k]],rep(nn,iderny[j,k]-ipremy[j,k]+1)))
         nvec = c(nvec,rep(n.par.age[j,ipremy[j,k]:iderny[j,k]],rep(nn,iderny[j,k]-ipremy[j,k]+1)))
       }
-      # Adapter pour que ceci fonctionne avec des strates où les tranches de début et de fin diffèrent
-      rowvec=c(rowvec,rep(1:nn,idern[k]-iprem[k]+1))
-      colvec=c(colvec,rep(iprem[k]:idern[k],rep(nn,idern[k]-iprem[k]+1)))
     }
+    rowvec=c(rowvec,rep(1:nn,idern[k]-iprem[k]+1))
+    colvec=c(colvec,rep(iprem[k]:idern[k],rep(nn,idern[k]-iprem[k]+1)))
   }
   # On garde seulement les combinaisons dont les effectifs sont non-nuls
   nonnul = nvec>0
   nvec = nvec[nonnul]
   y=y[nonnul]
   w=w[nonnul]
-  # if (!missing(X))
-  # {
-  #   X=X[nonnul,]
-  #   assign("X",X,env = parent.frame())
-  # }
+  if (!missing(X))
+  {
+    X=X[nonnul,]
+    assign("X",X,env = parent.frame())
+  }
   # normalisation des poids
   w = w/nvec
   
@@ -470,7 +469,7 @@ fit.pair.rates.matrices = function(dat,wi,X,duration,count.names,agecut,iprem,id
   # Paramètre d'échelle (dernier) des coefficients reste fixé
   assign("a",theta0[length(theta0)],env = parent.frame())
 
-  MattoVec=array(0,c(nn,nn,200))
+  MattoVec=array(0,c(nn,nn,ncol(imat[[1]])))
   lengthvec=matrix(rep(0,nn*nn),nrow=nn,ncol=nn)
   for (i in 1:length(rowvec))
   {
@@ -548,6 +547,22 @@ nlognb.rates = function(theta)
   mu = nvec*exp(X%*%b)
   ll = 0
   for (i in 1:length(y)) ll = ll + w[i]*dnbinom(x= y[i], size=a, mu=mu[i], log = TRUE)
+  return (-ll)
+}
+
+nlognb.pair.rates = function(theta)
+  #' @param theta Vector of parameters
+  #' @details Computes minus the log-likelihood of a negative binomial distribution. There must be a vector y of contact counts, a design matrix X and a vector of weights w in the environment. The last parameter is the scale parameter, all others are regression coefficients.
+  #' @return minus the log-likelihood
+{
+  # On sépare le paramètre d'échelle (dernier) des coefficients
+  subX = X[,c(subvec1,subvec2)]
+  nonnul = apply(subX,1,sum)>0
+  y2=y[nonnul]
+  w2=w[nonnul]
+  mu = nvec[nonnul]*exp(subX[nonnul,]%*%theta)
+  ll = 0
+  for (i in 1:length(y2)) ll = ll + w2[i]*dnbinom(x= y2[i], size=a, mu=mu[i], log = TRUE)
   return (-ll)
 }
 
@@ -667,10 +682,14 @@ contrc.pair.fonc = function(theta)
 {
 
     tmp = 0
+    quel = which(apply(imat[[colval]],2,any))
+    #deb = quel[1]
+    #fin = length(subvec1)-(ncol(imat[[colval]])-quel[length(quel)])
     # Boucle sur les combinaisons possibles de matrices pour un groupe d'âge
     for(h in 1:nrow(imat[[colval]]))
     {
-      mc = exp(theta[1:length(subvec1)])
+      mc = exp(theta[1:length(subvec1)][imat[[colval]][h,quel]])
+      #mc = exp(theta[deb:fin])
       # Ici ça donne les indices des matrices auxquels correspondent des coefficients dans subvec2
       # mais je ne comprends pas comment les coefficients dans subvec2 sont obtenus
       
