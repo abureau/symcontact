@@ -343,6 +343,9 @@ fit.pair.rates.matrices = function(dat,wi,X,duration,count.names,agecut,iprem,id
   if (!missing(duration)) d = duration else d = rep(1,length(wi))
   nn = length(agecut)-1
   
+  # Effectifs par tranche d'âge dans toute la population
+  # (Il faut vérifier si ça s'applique aussi quand vd est présent)
+  wj = tapply(wi*d,cut(dat$age,breaks=agecut),sum,na.rm=T)  
   if (missing(var.strat))
   {
     tab = t(apply(dat[,count.names],2,function(vec) tapply(vec,cut(dat$age,breaks=agecut),sum,na.rm=T)))
@@ -357,9 +360,7 @@ fit.pair.rates.matrices = function(dat,wi,X,duration,count.names,agecut,iprem,id
   }
   if (missing(vd))
   {
-    wj = wt
     nj = n.par.age
-    wj[is.na(wj)] = 0
     nj[is.na(nj)] = 0
     vd = numeric(0)
   }
@@ -373,21 +374,21 @@ fit.pair.rates.matrices = function(dat,wi,X,duration,count.names,agecut,iprem,id
     # Ici on somme les poids par catégorie d'occupation
     if (missing(var.strat))
     {
-      wj = tapply(wi*d,list(lieud,cut(dat$age,breaks=agecut)),sum,na.rm=T)
+      ww = tapply(wi*d,list(lieud,cut(dat$age,breaks=agecut)),sum,na.rm=T)
       nj = tapply(d,list(lieud,cut(dat$age,breaks=agecut)),sum,na.rm=T)
     }
     else
     {
       tmp = tapply(wi*d,list(lieud,dat[,var.strat],cut(dat$age,breaks=agecut)),sum,na.rm=T)
-      wj = apply(tmp,3,function(mat) stack(data.frame(mat))$values)
+      ww = apply(tmp,3,function(mat) stack(data.frame(mat))$values)
       tmp = tapply(d,list(lieud,dat[,var.strat],cut(dat$age,breaks=agecut)),sum,na.rm=T)
       nj = apply(tmp,3,function(mat) stack(data.frame(mat))$values)
       nstrat = dim(tmp)[[2]]
     }
-    wj[is.na(wj)] = 0
+    ww[is.na(ww)] = 0
     nj[is.na(nj)] = 0
     
-    # Poids et effectifs pour les matrices par lieux (on somme les lignes de wj correspondantes)
+    # Poids et effectifs pour les matrices par lieux (on somme les lignes de ww correspondantes)
     
     wl = nl = list()
     cobs = sort(unique(lieud))
@@ -395,13 +396,13 @@ fit.pair.rates.matrices = function(dat,wi,X,duration,count.names,agecut,iprem,id
     
     for (v in 1:length(vd))
     {
-      # Indices des combinaisons de dénominateurs présents dans les matrices nj et wj
+      # Indices des combinaisons de dénominateurs présents dans les matrices nj et ww
       suite = rep(seq(0,2^length(vd)-2^v,by=2^v),rep(2^(v-1),2^(length(vd)-v))) + rep((2^(v-1)+1):2^v,2^(length(vd)-v)) - 1
       ir = which(cobs%in%suite)
       if (missing(var.strat)) 
       {
         nl[[vd[v]]] = matrix(apply(nj[ir,],2,sum),1,nn)
-        wl[[vd[v]]] = matrix(apply(wj[ir,],2,sum),1,nn)
+        wl[[vd[v]]] = matrix(apply(ww[ir,],2,sum),1,nn)
       }
       else 
       {
@@ -410,7 +411,7 @@ fit.pair.rates.matrices = function(dat,wi,X,duration,count.names,agecut,iprem,id
         for (h in 1:nstrat)
         {
           nl[[vd[v]]][h,] = apply(nj[dec[h] + ir,],2,sum)
-          wl[[vd[v]]][h,] = apply(wj[dec[h] + ir,],2,sum)
+          wl[[vd[v]]][h,] = apply(ww[dec[h] + ir,],2,sum)
         }
       }
       indices[[v]]=ir
@@ -668,7 +669,7 @@ for(k in 1:(nn-1))
 				# On ajoute à l'indice de base dans mil le décalage pour la tranche d'âge k des participants
 				ml[max(1,iprem[imat[[nn+1]][h,]][l]-k)+0:(idern[imat[[nn+1]][h,]][l]-max(k+1,iprem[imat[[nn+1]][h,]][l])),l] = exp(b[mil[1:(idern[imat[[nn+1]][h,]][l]-max(k,iprem[imat[[nn+1]][h,]][l]-1)),l] + ((max(k+1,iprem[imat[[nn+1]][h,]][l]):idern[imat[[nn+1]][h,]][l])-iprem[imat[[nn+1]][h,]][l])*nn ])
 			}
-		tmp = tmp + wj[h,k]*apply(mc,1,sum) - wj[h,(k+1):nn]*apply(ml,1,sum)
+		tmp = tmp + wj[k]*apply(mc,1,sum) - wj[(k+1):nn]*apply(ml,1,sum)
 	}
 	contr.vec = c(contr.vec,tmp)
 }
@@ -698,7 +699,7 @@ contrc.pair.fonc = function(theta)
 #   ml = numeric(nn-rowval+1)
 #      for (l in 1:length(ivec))
 #        ml[pmax(1,iprem[imat[[nn+1]][h,]][ivec[l]]-colval)] = ml[pmax(1,iprem[imat[[nn+1]][h,]][ivec[l]]-colval)] + exp(theta[length(subvec1)+l])
-      tmp = tmp + wj[h,colval]*sum(mc) - wj[h,rowval]*sum(ml)
+      tmp = tmp + wj[colval]*sum(mc) - wj[rowval]*sum(ml)
     }
   return(tmp)
 }
