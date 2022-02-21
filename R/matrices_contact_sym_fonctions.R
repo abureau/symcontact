@@ -544,10 +544,10 @@ nlognb.rates = function(theta)
 {
   # On sépare le paramètre d'échelle (dernier) des coefficients
   b = theta[-length(theta)]
-  a = theta[length(theta)]
+  a = nvec*theta[length(theta)]
   mu = nvec*exp(X%*%b)
   ll = 0
-  for (i in 1:length(y)) ll = ll + w[i]*dnbinom(x= y[i], size=a, mu=mu[i], log = TRUE)
+  for (i in 1:length(y)) ll = ll + w[i]*dnbinom(x= y[i], size=a[i], mu=mu[i], log = TRUE)
   return (-ll)
 }
 
@@ -561,9 +561,10 @@ nlognb.pair.rates = function(theta)
   nonnul = apply(subX,1,sum)>0
   y2=y[nonnul]
   w2=w[nonnul]
-  mu = nvec[nonnul]*exp(subX[nonnul,]%*%theta)
+  nvec2=nvec[nonnul]
+  mu = nvec2*exp(subX[nonnul,]%*%theta)
   ll = 0
-  for (i in 1:length(y2)) ll = ll + w2[i]*dnbinom(x= y2[i], size=a, mu=mu[i], log = TRUE)
+  for (i in 1:length(y2)) ll = ll + w2[i]*dnbinom(x= y2[i], size=nvec2[i]*a, mu=mu[i], log = TRUE)
   return (-ll)
 }
 
@@ -587,9 +588,9 @@ nlognb.counts.rates = function(theta)
 {
     # On sépare le paramètre d'échelle (dernier) des coefficients
 	mu = nvec*exp(theta[-length(theta)])
-	a = theta[length(theta)]
+	a = nvec*theta[length(theta)]
 	ll = 0
-	for (i in 1:length(y)) ll = ll + w[i]*dnbinom(x= y[i], size=a, mu=mu[i], log = TRUE)
+	for (i in 1:length(y)) ll = ll + w[i]*dnbinom(x= y[i], size=a[i], mu=mu[i], log = TRUE)
 	return (-ll)
 }
 
@@ -600,9 +601,10 @@ nlognb.pair.counts.rates = function(theta)
 {
   y2=y[c(subvec1,subvec2)]
   w2=w[c(subvec1,subvec2)]
-  mu = nvec[c(subvec1,subvec2)]*exp(theta)
+  nvec2=nvec[c(subvec1,subvec2)]
+  mu = nvec2*exp(theta)
   ll = 0
-  for (i in 1:length(y2)) ll = ll + w2[i]*dnbinom(x= y2[i], size=a, mu=mu[i], log = TRUE)
+  for (i in 1:length(y2)) ll = ll + w2[i]*dnbinom(x= y2[i], size=nvec2[i]*a, mu=mu[i], log = TRUE)
   return (-ll)
 }
 
